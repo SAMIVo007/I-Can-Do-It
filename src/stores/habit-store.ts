@@ -49,6 +49,11 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
         FOREIGN KEY (habitId) REFERENCES habits(id)
       );
     `);
+    try {
+      await db.execAsync('ALTER TABLE habits ADD COLUMN incrementValue REAL DEFAULT 1');
+    } catch (e) {
+      // Ignore if column already exists
+    }
   }
   return db;
 }
@@ -80,6 +85,7 @@ interface HabitState {
     type: HabitType;
     target?: number;
     unit?: string;
+    incrementValue?: number;
   }) => Promise<Habit>;
   updateHabit: (id: string, updates: Partial<Habit>) => Promise<void>;
   deleteHabit: (id: string) => Promise<void>;
@@ -154,15 +160,16 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       type: params.type,
       target: params.target,
       unit: params.unit,
+      incrementValue: params.incrementValue ?? 1,
       isActive: true,
       createdAt: new Date().toISOString(),
       sortOrder: state.habits.length,
       reminderEnabled: false,
     };
     await database.runAsync(
-      `INSERT INTO habits (id, goalId, title, description, category, type, target, unit, isActive, createdAt, sortOrder, reminderEnabled)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [habit.id, habit.goalId, habit.title, habit.description ?? null, habit.category, habit.type, habit.target ?? null, habit.unit ?? null, 1, habit.createdAt, habit.sortOrder, 0]
+      `INSERT INTO habits (id, goalId, title, description, category, type, target, unit, incrementValue, isActive, createdAt, sortOrder, reminderEnabled)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [habit.id, habit.goalId, habit.title, habit.description ?? null, habit.category, habit.type, habit.target ?? null, habit.unit ?? null, habit.incrementValue ?? 1, 1, habit.createdAt, habit.sortOrder, 0]
     );
     set((s) => ({ habits: [...s.habits, habit] }));
     return habit;

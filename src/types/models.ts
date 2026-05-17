@@ -43,6 +43,7 @@ export interface Habit {
   /** Only for quantitative habits */
   target?: number; // e.g. 4 (glasses), 2000 (ml)
   unit?: string; // e.g. "L", "pages", "steps"
+  incrementValue?: number; // custom increment value
   isActive: boolean;
   createdAt: string;
   sortOrder: number;

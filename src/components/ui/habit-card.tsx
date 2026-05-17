@@ -10,6 +10,7 @@ import { Body } from "@/components/ui/typography";
 import { Colors, Radii, Spacing } from "@/constants/theme";
 import type { DailyLog, Habit } from "@/types/models";
 import { getProgress, isHabitComplete } from "@/types/models";
+import { SymbolView } from "expo-symbols";
 import React from "react";
 import { Pressable, View, type ViewStyle } from "react-native";
 import Animated, { FadeIn, LinearTransition } from "react-native-reanimated";
@@ -19,9 +20,16 @@ interface HabitCardProps {
 	log: DailyLog | undefined;
 	onToggle: () => void;
 	onPress?: () => void;
+	onIncrement?: (amount: number) => void;
 }
 
-export function HabitCard({ habit, log, onToggle, onPress }: HabitCardProps) {
+export function HabitCard({
+	habit,
+	log,
+	onToggle,
+	onPress,
+	onIncrement,
+}: HabitCardProps) {
 	const completed = isHabitComplete(habit, log);
 	const progress = getProgress(habit, log);
 
@@ -53,8 +61,39 @@ export function HabitCard({ habit, log, onToggle, onPress }: HabitCardProps) {
 					color: Colors.border,
 				}}
 			>
-				{/* Checkbox */}
-				<Checkbox checked={completed} onToggle={onToggle} />
+				{/* Checkbox or Increment */}
+				{habit.type === "boolean" ? (
+					<Checkbox checked={completed} onToggle={onToggle} />
+				) : (
+					<Pressable
+						onPress={() => onIncrement?.(habit.incrementValue || 1)}
+						style={({ pressed }) => ({
+							minWidth: 30,
+							height: 30,
+							paddingHorizontal: Spacing.xs,
+							borderRadius: 16,
+							backgroundColor: completed ? Colors.success : Colors.background,
+							borderWidth: completed ? 0 : 1,
+							borderColor: Colors.border,
+							alignItems: "center",
+							justifyContent: "center",
+							opacity: pressed ? 0.7 : 1,
+						})}
+					>
+						{completed ? (
+							<SymbolView
+								name={{ ios: "checkmark", android: "check", web: "check" }}
+								size={20}
+								tintColor={Colors.white}
+								fallback={<Body style={{ color: Colors.white, fontSize: 18 }}>✓</Body>}
+							/>
+						) : (
+							<Body size="sm" weight="medium" style={{ color: Colors.textPrimary }}>
+								+{habit.incrementValue || 1}
+							</Body>
+						)}
+					</Pressable>
+				)}
 
 				{/* Content */}
 				<View style={{ flex: 1, gap: Spacing.xs } satisfies ViewStyle}>

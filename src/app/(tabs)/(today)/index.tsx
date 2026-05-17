@@ -30,6 +30,7 @@ export default function TodayScreen() {
 	);
 	const logs = useHabitStore((s) => s.logs);
 	const toggleHabit = useHabitStore((s) => s.toggleHabit);
+	const updateProgress = useHabitStore((s) => s.updateProgress);
 
 	const getLogForHabit = (habitId: string) =>
 		logs.find((l) => l.habitId === habitId && l.date === today);
@@ -48,6 +49,15 @@ export default function TodayScreen() {
 			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 		}
 		await toggleHabit(habitId, today);
+	};
+
+	const handleIncrement = async (habitId: string, amount: number) => {
+		if (process.env.EXPO_OS === "ios") {
+			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+		}
+		const log = getLogForHabit(habitId);
+		const currentValue = log?.value ?? 0;
+		await updateProgress(habitId, today, currentValue + amount);
 	};
 
 	const getMomentumMessage = () => {
@@ -163,6 +173,7 @@ export default function TodayScreen() {
 										habit={habit}
 										log={getLogForHabit(habit.id)}
 										onToggle={() => handleToggle(habit.id)}
+										onIncrement={(amount) => handleIncrement(habit.id, amount)}
 										onPress={() => router.push(`/habit/${habit.id}` as any)}
 									/>
 								</Animated.View>
