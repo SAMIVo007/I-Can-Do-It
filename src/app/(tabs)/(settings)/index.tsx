@@ -1,0 +1,196 @@
+/**
+ * Settings screen — user preferences, notifications, data management.
+ */
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { TextInput } from "@/components/ui/text-input";
+import { Body, Heading } from "@/components/ui/typography";
+import { Colors, Spacing } from "@/constants/theme";
+import { useStorage } from "@/hooks/use-storage";
+import {
+	cancelAllReminders,
+	requestNotificationPermissions,
+} from "@/utils/notifications";
+import React from "react";
+import { Alert, ScrollView, Switch, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
+
+export default function SettingsScreen() {
+	const [userName, setUserName] = useStorage("userName", "");
+	const [remindersEnabled, setRemindersEnabled] = useStorage(
+		"remindersEnabled",
+		false,
+	);
+
+	const handleToggleReminders = async (value: boolean) => {
+		if (value) {
+			const granted = await requestNotificationPermissions();
+			if (!granted) {
+				Alert.alert(
+					"Permissions Required",
+					"Please enable notifications in your device settings to receive habit reminders.",
+				);
+				return;
+			}
+		} else {
+			await cancelAllReminders();
+		}
+		setRemindersEnabled(value);
+	};
+
+	return (
+		<ScrollView
+			contentInsetAdjustmentBehavior="automatic"
+			contentContainerStyle={{
+				padding: Spacing.xl,
+				paddingBottom: Spacing.xxxl * 2,
+				paddingTop: Spacing.xxxl,
+				gap: Spacing.xl,
+			}}
+			style={{ backgroundColor: Colors.background }}
+		>
+			{/* Header */}
+			<Animated.View entering={FadeInDown.duration(400)}>
+				<Heading size="xl">Settings</Heading>
+				<Body secondary style={{ marginTop: Spacing.xs }}>
+					Manage your preferences and data.
+				</Body>
+			</Animated.View>
+
+			{/* Profile Section */}
+			<Animated.View entering={FadeInDown.duration(400).delay(100)}>
+				<Card variant="filled" padding="lg">
+					<View style={{ gap: Spacing.lg }}>
+						<Body
+							weight="bold"
+							size="sm"
+							style={{
+								textTransform: "uppercase",
+								letterSpacing: 1,
+								color: Colors.textSecondary,
+							}}
+						>
+							Profile
+						</Body>
+						<TextInput
+							label="Your Name"
+							value={userName}
+							onChangeText={setUserName}
+							placeholder="Enter your name"
+						/>
+					</View>
+				</Card>
+			</Animated.View>
+
+			{/* Notifications Section */}
+			<Animated.View entering={FadeInDown.duration(400).delay(100)}>
+				<Card variant="filled" padding="lg">
+					<View style={{ gap: Spacing.lg }}>
+						<Body
+							weight="bold"
+							size="sm"
+							style={{
+								textTransform: "uppercase",
+								letterSpacing: 1,
+								color: Colors.textSecondary,
+							}}
+						>
+							Notifications
+						</Body>
+						<View
+							style={{
+								flexDirection: "row",
+								justifyContent: "space-between",
+								alignItems: "center",
+							}}
+						>
+							<View style={{ flex: 1 }}>
+								<Body weight="medium">Habit Reminders</Body>
+								<Body size="sm" secondary>
+									Get daily reminders for your habits
+								</Body>
+							</View>
+							<Switch
+								value={remindersEnabled}
+								onValueChange={handleToggleReminders}
+								trackColor={{ false: Colors.border, true: Colors.success }}
+								thumbColor={Colors.white}
+							/>
+						</View>
+					</View>
+				</Card>
+			</Animated.View>
+
+			{/* About Section */}
+			<Animated.View entering={FadeInDown.duration(400).delay(200)}>
+				<Card variant="filled" padding="lg">
+					<View style={{ gap: Spacing.md }}>
+						<Body
+							weight="bold"
+							size="sm"
+							style={{
+								textTransform: "uppercase",
+								letterSpacing: 1,
+								color: Colors.textSecondary,
+							}}
+						>
+							About
+						</Body>
+						<SettingsRow label="Version" value="1.0.0" />
+						<SettingsRow label="Built with" value="Expo + React Native" />
+					</View>
+				</Card>
+			</Animated.View>
+
+			{/* Danger Zone */}
+			<Animated.View entering={FadeInDown.duration(400).delay(300)}>
+				<Card variant="bordered" padding="lg">
+					<View style={{ gap: Spacing.lg }}>
+						<Body
+							weight="bold"
+							size="sm"
+							style={{
+								textTransform: "uppercase",
+								letterSpacing: 1,
+								color: Colors.danger,
+							}}
+						>
+							Danger Zone
+						</Body>
+						<Button
+							title="Reset All Data"
+							variant="outlined"
+							onPress={() => {
+								Alert.alert(
+									"Reset All Data",
+									"This will permanently delete all your goals, habits, and progress. Are you sure?",
+									[
+										{ text: "Cancel", style: "cancel" },
+										{ text: "Delete", style: "destructive", onPress: () => {} },
+									],
+								);
+							}}
+						/>
+					</View>
+				</Card>
+			</Animated.View>
+		</ScrollView>
+	);
+}
+
+function SettingsRow({ label, value }: { label: string; value: string }) {
+	return (
+		<View
+			style={{
+				flexDirection: "row",
+				justifyContent: "space-between",
+				alignItems: "center",
+				paddingVertical: Spacing.xs,
+			}}
+		>
+			<Body>{label}</Body>
+			<Body secondary>{value}</Body>
+		</View>
+	);
+}
