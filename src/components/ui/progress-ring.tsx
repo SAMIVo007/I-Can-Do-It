@@ -22,8 +22,8 @@ interface ProgressRingProps {
 	progress: number;
 	size?: number;
 	strokeWidth?: number;
-	color?: string;
-	trackColor?: string;
+	color?: import('react-native').ColorValue | string;
+	trackColor?: import('react-native').ColorValue | string;
 	showLabel?: boolean;
 	labelSize?: "sm" | "md" | "lg" | "xl";
 	children?: React.ReactNode;

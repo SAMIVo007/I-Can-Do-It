@@ -1,0 +1,46 @@
+import type { ModalBottomSheetRef } from "@expo/ui/jetpack-compose";
+import { Host, ModalBottomSheet, RNHostView } from "@expo/ui/jetpack-compose";
+import React, { useEffect, useRef, useState } from "react";
+
+export interface NativeBottomSheetProps {
+	isOpen: boolean;
+	onClosed: () => void;
+	children: React.ReactNode;
+}
+
+export function NativeBottomSheet({
+	isOpen,
+	onClosed,
+	children,
+}: NativeBottomSheetProps) {
+	const [mounted, setMounted] = useState(isOpen);
+	const sheetRef = useRef<ModalBottomSheetRef>(null);
+
+	useEffect(() => {
+		if (isOpen && !mounted) {
+			setMounted(true);
+		} else if (!isOpen && mounted) {
+			sheetRef.current?.hide().then(() => {
+				setMounted(false);
+				onClosed();
+			});
+		}
+	}, [isOpen]);
+
+	return (
+		<Host>
+			{mounted && (
+				<ModalBottomSheet
+					ref={sheetRef}
+					onDismissRequest={() => {
+						setMounted(false);
+						onClosed();
+					}}
+					skipPartiallyExpanded={true}
+				>
+					<RNHostView matchContents>{children}</RNHostView>
+				</ModalBottomSheet>
+			)}
+		</Host>
+	);
+}

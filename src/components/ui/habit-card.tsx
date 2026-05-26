@@ -7,19 +7,21 @@
 import { CategoryPill } from "@/components/ui/category-pill";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Body } from "@/components/ui/typography";
-import { Colors, Radii, Spacing } from "@/constants/theme";
+import { Radii, Spacing } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
 import type { DailyLog, Habit } from "@/types/models";
 import { getProgress, isHabitComplete } from "@/types/models";
 import { SymbolView } from "expo-symbols";
 import React from "react";
 import { Pressable, View, type ViewStyle } from "react-native";
-import Animated, { FadeIn, LinearTransition } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 
 interface HabitCardProps {
 	habit: Habit;
 	log: DailyLog | undefined;
 	onToggle: () => void;
 	onPress?: () => void;
+	onLongPress?: () => void;
 	onIncrement?: (amount: number) => void;
 }
 
@@ -28,19 +30,18 @@ export function HabitCard({
 	log,
 	onToggle,
 	onPress,
+	onLongPress,
 	onIncrement,
 }: HabitCardProps) {
+	const Colors = useAppColors();
 	const completed = isHabitComplete(habit, log);
 	const progress = getProgress(habit, log);
 
 	return (
-		<Animated.View
-			entering={FadeIn.duration(300)}
-			layout={LinearTransition}
-			style={{ borderRadius: Radii.lg, overflow: "hidden" }}
-		>
+		<View style={{ borderRadius: Radii.lg, overflow: "hidden" }}>
 			<Pressable
 				onPress={onPress}
+				onLongPress={onLongPress}
 				style={({ pressed }) => [
 					{
 						flexDirection: "row",
@@ -56,8 +57,6 @@ export function HabitCard({
 				]}
 				android_ripple={{
 					foreground: true,
-					// radius: 100,
-					// borderless: true,
 					color: Colors.border,
 				}}
 			>
@@ -145,6 +144,6 @@ export function HabitCard({
 				{/* Category pill */}
 				<CategoryPill label={habit.category} compact />
 			</Pressable>
-		</Animated.View>
+		</View>
 	);
 }

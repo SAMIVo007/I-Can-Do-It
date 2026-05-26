@@ -3,19 +3,18 @@
  */
 
 import { Button } from "@/components/ui/button";
+import { NativeBottomSheet } from "@/components/ui/native-bottom-sheet";
 import { StepperInput } from "@/components/ui/stepper-input";
 import { TextInput } from "@/components/ui/text-input";
 import { Body, Heading } from "@/components/ui/typography";
-import { Colors, Radii, Spacing } from "@/constants/theme";
+import { Radii, Spacing } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
 import { useHabitStore } from "@/stores/habit-store";
 import type { HabitCategory, HabitType } from "@/types/models";
-import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
-import { SymbolView } from "expo-symbols";
-import React, { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
 	Alert,
-	Keyboard,
 	Pressable,
 	ScrollView,
 	View,
@@ -32,12 +31,31 @@ const CATEGORIES: HabitCategory[] = [
 ];
 
 export default function AddHabitScreen() {
+	const Colors = useAppColors();
+	const { id: editId } = useLocalSearchParams<{ id?: string }>();
+	const habits = useHabitStore((s) => s.habits);
+	const editHabit = editId ? habits.find((h) => h.id === editId) : undefined;
+
 	const [title, setTitle] = useState("");
 	const [category, setCategory] = useState<HabitCategory>("Health");
 	const [habitType, setHabitType] = useState<HabitType>("boolean");
 	const [target, setTarget] = useState("");
 	const [unit, setUnit] = useState("");
 	const [incrementValue, setIncrementValue] = useState("1");
+	const [isOpen, setIsOpen] = useState(true);
+
+	useEffect(() => {
+		if (editHabit) {
+			setTitle(editHabit.title);
+			setCategory(editHabit.category);
+			setHabitType(editHabit.type);
+			setTarget(editHabit.target ? String(editHabit.target) : "");
+			setUnit(editHabit.unit || "");
+			setIncrementValue(
+				editHabit.incrementValue ? String(editHabit.incrementValue) : "1",
+			);
+		}
+	}, [editHabit]);
 
 	const [titleError, setTitleError] = useState("");
 	const [targetError, setTargetError] = useState("");
@@ -45,8 +63,9 @@ export default function AddHabitScreen() {
 
 	const goals = useHabitStore((s) => s.goals);
 	const addHabit = useHabitStore((s) => s.addHabit);
+	const updateHabit = useHabitStore((s) => s.updateHabit);
 
-	const handleCreate = async () => {
+	const handleSave = async () => {
 		let hasError = false;
 
 		if (!title.trim()) {
@@ -77,257 +96,285 @@ export default function AddHabitScreen() {
 
 		if (hasError) return;
 
-		const goalId = goals.length > 0 ? goals[0].id : "";
-		if (!goalId) {
-			Alert.alert("No Goal", "Please create a goal first.");
-			return;
+		if (editHabit) {
+			await updateHabit(editHabit.id, {
+				title: title.trim(),
+				category,
+				type: habitType,
+				target:
+					habitType === "quantitative" ? Number(target) || undefined : undefined,
+				unit: habitType === "quantitative" ? unit || undefined : undefined,
+				incrementValue:
+					habitType === "quantitative" ? Number(incrementValue) || 1 : undefined,
+			});
+		} else {
+			const goalId = goals.length > 0 ? goals[0].id : "";
+			if (!goalId) {
+				Alert.alert("No Goal", "Please create a goal first.");
+				return;
+			}
+			await addHabit({
+				goalId,
+				title: title.trim(),
+				category,
+				type: habitType,
+				target:
+					habitType === "quantitative" ? Number(target) || undefined : undefined,
+				unit: habitType === "quantitative" ? unit || undefined : undefined,
+				incrementValue:
+					habitType === "quantitative" ? Number(incrementValue) || 1 : undefined,
+			});
 		}
+		setIsOpen(false);
+	};
 
-		if (process.env.EXPO_OS === "ios") {
-			Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-		}
-
-		await addHabit({
-			goalId,
-			title: title.trim(),
-			category,
-			type: habitType,
-			target:
-				habitType === "quantitative" ? Number(target) || undefined : undefined,
-			unit: habitType === "quantitative" ? unit || undefined : undefined,
-			incrementValue:
-				habitType === "quantitative" ? Number(incrementValue) || 1 : undefined,
-		});
+	const handleClose = () => {
 		router.back();
 	};
 
 	return (
-		<ScrollView
-			contentContainerStyle={{
-				padding: Spacing.xl,
-				gap: Spacing.xl,
-			}}
-			style={{
-				backgroundColor: Colors.background,
-				borderTopLeftRadius: Radii.xl,
-				borderTopRightRadius: Radii.xl,
-				overflow: "hidden",
-			}}
-			keyboardShouldPersistTaps="handled"
-		>
-			{/* Header */}
-			<View
-				style={{
-					flexDirection: "row",
-					justifyContent: "space-between",
-					alignItems: "center",
-					width: "100%",
-				}}
-			>
-				<Heading>New Habit</Heading>
-				<Pressable
-					onPress={() => {
-						Keyboard.dismiss();
-						router.back();
+		<View style={{ flex: 1 }}>
+			<NativeBottomSheet isOpen={isOpen} onClosed={handleClose}>
+				<ScrollView
+					contentContainerStyle={{
+						padding: Spacing.xl,
+						gap: Spacing.xl,
 					}}
-					hitSlop={12}
-					style={{ padding: 4 }}
-				>
-					<SymbolView
-						name={{ ios: "xmark", android: "close", web: "close" }}
-						size={24}
-						tintColor={Colors.textPrimary}
-						fallback={
-							<Body style={{ color: Colors.textPrimary, fontSize: 18 }}>✕</Body>
-						}
-					/>
-				</Pressable>
-			</View>
-
-			{/* Input */}
-			<View>
-				<TextInput
-					label="Habit Name"
-					value={title}
-					onChangeText={(text) => {
-						setTitle(text);
-						if (titleError) setTitleError("");
-					}}
-					placeholder="e.g., Morning Run, Read 20 Pages"
-					autoFocus
-				/>
-				{titleError ? (
-					<Body size="sm" style={{ color: Colors.danger, marginTop: Spacing.xs }}>
-						{titleError}
-					</Body>
-				) : null}
-			</View>
-
-			{/* Category */}
-			<View style={{ gap: Spacing.md }}>
-				<Body
-					size="xs"
-					weight="medium"
-					style={{
-						textTransform: "uppercase",
-						letterSpacing: 1,
-						color: Colors.textSecondary,
-					}}
-				>
-					Category
-				</Body>
-				<View
 					style={
 						{
-							flexDirection: "row",
-							flexWrap: "wrap",
-							gap: Spacing.sm,
-						} satisfies ViewStyle
+							backgroundColor: Colors.background,
+						}
 					}
+					keyboardShouldPersistTaps="handled"
 				>
-					{CATEGORIES.map((cat) => (
-						<Pressable
-							key={cat}
-							onPress={() => setCategory(cat)}
+					{/* Header */}
+					<View
+						style={{
+							flexDirection: "row",
+							justifyContent: "space-between",
+							alignItems: "center",
+							width: "100%",
+						}}
+					>
+						<Heading>{editHabit ? "Edit Habit" : "New Habit"}</Heading>
+						{/* <Pressable
+							onPress={() => {
+								Keyboard.dismiss();
+								setIsOpen(false);
+							}}
+							hitSlop={12}
+							style={{ padding: 4 }}
+						>
+							<SymbolView
+								name={{ ios: "xmark", android: "close", web: "close" }}
+								size={24}
+								tintColor={Colors.textPrimary}
+								fallback={
+									<Body style={{ color: Colors.textPrimary, fontSize: 18 }}>✕</Body>
+								}
+							/>
+						</Pressable> */}
+					</View>
+
+					{/* Input */}
+					<View>
+						<TextInput
+							label="Habit Name"
+							value={title}
+							onChangeText={(text) => {
+								setTitle(text);
+								if (titleError) setTitleError("");
+							}}
+							placeholder="e.g., Morning Run, Read 20 Pages"
+							autoFocus
+						/>
+						{titleError ? (
+							<Body size="sm" style={{ color: Colors.danger, marginTop: Spacing.xs }}>
+								{titleError}
+							</Body>
+						) : null}
+					</View>
+
+					{/* Category */}
+					<View style={{ gap: Spacing.md }}>
+						<Body
+							size="xs"
+							weight="medium"
+							style={{
+								textTransform: "uppercase",
+								letterSpacing: 1,
+								color: Colors.textSecondary,
+							}}
+						>
+							Category
+						</Body>
+						<View
 							style={
 								{
-									paddingVertical: Spacing.sm,
-									paddingHorizontal: Spacing.md,
-									borderRadius: Radii.xl,
-									borderWidth: 1,
-									borderColor: category === cat ? Colors.accent : Colors.border,
-									backgroundColor: category === cat ? Colors.accent : Colors.transparent,
+									flexDirection: "row",
+									flexWrap: "wrap",
+									gap: Spacing.sm,
 								} satisfies ViewStyle
 							}
 						>
-							<Body
-								size="sm"
-								style={{
-									color: category === cat ? Colors.white : Colors.textPrimary,
-								}}
-							>
-								{cat}
-							</Body>
-						</Pressable>
-					))}
-				</View>
-			</View>
-
-			{/* Type Toggle */}
-			<View style={{ gap: Spacing.md }}>
-				<Body
-					size="xs"
-					weight="medium"
-					style={{
-						textTransform: "uppercase",
-						letterSpacing: 1,
-						color: Colors.textSecondary,
-					}}
-				>
-					Progress Type
-				</Body>
-				<View style={{ flexDirection: "row", gap: Spacing.sm }}>
-					<Pressable
-						onPress={() => setHabitType("boolean")}
-						style={
-							{
-								flex: 1,
-								paddingVertical: Spacing.md,
-								borderRadius: Radii.md,
-								borderWidth: 1,
-								borderColor: habitType === "boolean" ? Colors.accent : Colors.border,
-								backgroundColor:
-									habitType === "boolean" ? Colors.accent : Colors.transparent,
-								alignItems: "center",
-							} satisfies ViewStyle
-						}
-					>
-						<Body
-							size="sm"
-							style={{
-								color: habitType === "boolean" ? Colors.white : Colors.textPrimary,
-							}}
-						>
-							Yes / No
-						</Body>
-					</Pressable>
-					<Pressable
-						onPress={() => setHabitType("quantitative")}
-						style={
-							{
-								flex: 1,
-								paddingVertical: Spacing.md,
-								borderRadius: Radii.md,
-								borderWidth: 1,
-								borderColor:
-									habitType === "quantitative" ? Colors.accent : Colors.border,
-								backgroundColor:
-									habitType === "quantitative" ? Colors.accent : Colors.transparent,
-								alignItems: "center",
-							} satisfies ViewStyle
-						}
-					>
-						<Body
-							size="sm"
-							style={{
-								color: habitType === "quantitative" ? Colors.white : Colors.textPrimary,
-							}}
-						>
-							Measurable
-						</Body>
-					</Pressable>
-				</View>
-			</View>
-
-			{/* Quantitative fields */}
-			{habitType === "quantitative" && (
-				<View style={{ gap: Spacing.md }}>
-					<View style={{ flexDirection: "row", gap: Spacing.md }}>
-						<View style={{ flex: 1 }}>
-							<TextInput
-								label="Target"
-								value={target}
-								onChangeText={(text) => {
-									setTarget(text);
-									if (targetError) setTargetError("");
-								}}
-								placeholder="e.g., 2"
-								keyboardType="numeric"
-							/>
-							{targetError ? (
-								<Body size="sm" style={{ color: Colors.danger, marginTop: Spacing.xs }}>
-									{targetError}
-								</Body>
-							) : null}
-						</View>
-						<View style={{ flex: 1 }}>
-							<TextInput
-								label="Unit"
-								value={unit}
-								onChangeText={(text) => {
-									setUnit(text);
-									if (unitError) setUnitError("");
-								}}
-								placeholder="e.g., L, pages"
-							/>
-							{unitError ? (
-								<Body size="sm" style={{ color: Colors.danger, marginTop: Spacing.xs }}>
-									{unitError}
-								</Body>
-							) : null}
+							{CATEGORIES.map((cat) => (
+								<Pressable
+									key={cat}
+									onPress={() => setCategory(cat)}
+									style={
+										{
+											paddingVertical: Spacing.sm,
+											paddingHorizontal: Spacing.md,
+											borderRadius: Radii.xl,
+											borderWidth: 1,
+											borderColor: category === cat ? Colors.accent : Colors.border,
+											backgroundColor:
+												category === cat ? Colors.accent : Colors.transparent,
+										} satisfies ViewStyle
+									}
+								>
+									<Body
+										size="sm"
+										style={{
+											color: category === cat ? Colors.white : Colors.textPrimary,
+										}}
+									>
+										{cat}
+									</Body>
+								</Pressable>
+							))}
 						</View>
 					</View>
-					<View style={{ gap: Spacing.md }}/>
-					<StepperInput
-						label="Increment Value (per tap)"
-						value={incrementValue}
-						onChangeText={setIncrementValue}
-						min={1}
-					/>
-				</View>
-			)}
 
-			<Button title="Create Habit" onPress={handleCreate} size="lg" fullWidth />
-		</ScrollView>
+					{/* Type Toggle */}
+					<View style={{ gap: Spacing.md }}>
+						<Body
+							size="xs"
+							weight="medium"
+							style={{
+								textTransform: "uppercase",
+								letterSpacing: 1,
+								color: Colors.textSecondary,
+							}}
+						>
+							Progress Type
+						</Body>
+						<View style={{ flexDirection: "row", gap: Spacing.sm }}>
+							<Pressable
+								onPress={() => setHabitType("boolean")}
+								style={
+									{
+										flex: 1,
+										paddingVertical: Spacing.md,
+										borderRadius: Radii.md,
+										borderWidth: 1,
+										borderColor: habitType === "boolean" ? Colors.accent : Colors.border,
+										backgroundColor:
+											habitType === "boolean" ? Colors.accent : Colors.transparent,
+										alignItems: "center",
+									} satisfies ViewStyle
+								}
+							>
+								<Body
+									size="sm"
+									style={{
+										color: habitType === "boolean" ? Colors.white : Colors.textPrimary,
+									}}
+								>
+									Yes / No
+								</Body>
+							</Pressable>
+							<Pressable
+								onPress={() => setHabitType("quantitative")}
+								style={
+									{
+										flex: 1,
+										paddingVertical: Spacing.md,
+										borderRadius: Radii.md,
+										borderWidth: 1,
+										borderColor:
+											habitType === "quantitative" ? Colors.accent : Colors.border,
+										backgroundColor:
+											habitType === "quantitative" ? Colors.accent : Colors.transparent,
+										alignItems: "center",
+									} satisfies ViewStyle
+								}
+							>
+								<Body
+									size="sm"
+									style={{
+										color:
+											habitType === "quantitative" ? Colors.white : Colors.textPrimary,
+									}}
+								>
+									Measurable
+								</Body>
+							</Pressable>
+						</View>
+					</View>
+
+					{/* Quantitative fields */}
+					{habitType === "quantitative" && (
+						<View style={{ gap: Spacing.md }}>
+							<View style={{ flexDirection: "row", gap: Spacing.md }}>
+								<View style={{ flex: 1 }}>
+									<TextInput
+										label="Target"
+										value={target}
+										onChangeText={(text) => {
+											setTarget(text);
+											if (targetError) setTargetError("");
+										}}
+										placeholder="e.g., 2"
+										keyboardType="numeric"
+									/>
+									{targetError ? (
+										<Body
+											size="sm"
+											style={{ color: Colors.danger, marginTop: Spacing.xs }}
+										>
+											{targetError}
+										</Body>
+									) : null}
+								</View>
+								<View style={{ flex: 1 }}>
+									<TextInput
+										label="Unit"
+										value={unit}
+										onChangeText={(text) => {
+											setUnit(text);
+											if (unitError) setUnitError("");
+										}}
+										placeholder="e.g., L, pages"
+									/>
+									{unitError ? (
+										<Body
+											size="sm"
+											style={{ color: Colors.danger, marginTop: Spacing.xs }}
+										>
+											{unitError}
+										</Body>
+									) : null}
+								</View>
+							</View>
+							<View style={{ gap: Spacing.md }} />
+							<StepperInput
+								label="Increment Value (per tap)"
+								value={incrementValue}
+								onChangeText={setIncrementValue}
+								min={1}
+							/>
+						</View>
+					)}
+
+					<Button
+						title={editHabit ? "Save Changes" : "Create Habit"}
+						onPress={handleSave}
+						size="lg"
+						fullWidth
+					/>
+				</ScrollView>
+			</NativeBottomSheet>
+		</View>
 	);
 }

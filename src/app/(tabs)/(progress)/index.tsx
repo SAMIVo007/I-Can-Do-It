@@ -8,7 +8,8 @@ import { Card } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { Body, Heading } from "@/components/ui/typography";
 import { WeekCircles } from "@/components/ui/week-circles";
-import { Colors, Spacing } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
+import { Spacing } from "@/constants/theme";
 import { useHabitStore } from "@/stores/habit-store";
 import type { DaySummary, MonthlyBar } from "@/types/models";
 import {
@@ -24,6 +25,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
 
 export default function ProgressScreen() {
+	const Colors = useAppColors();
 	const now = new Date();
 	const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
 	const [selectedYear] = useState(now.getFullYear());

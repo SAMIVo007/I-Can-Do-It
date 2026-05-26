@@ -68,15 +68,9 @@ export function StepperInput({
 			duration: 200,
 		}),
 		top: withTiming(isActive ? 0 : Spacing.xl, { duration: 200 }),
-		color: withTiming(focused ? Colors.accent : Colors.textSecondary, {
-			duration: 200,
-		}),
 	}));
 
 	const borderStyle = useAnimatedStyle(() => ({
-		borderBottomColor: withTiming(focused ? Colors.accent : Colors.border, {
-			duration: 200,
-		}),
 		borderBottomWidth: withTiming(focused ? 2 : 1, { duration: 200 }),
 	}));
 
@@ -86,6 +80,7 @@ export function StepperInput({
 				{
 					paddingTop: Spacing.lg,
 					paddingBottom: Spacing.sm,
+					borderBottomColor: (focused ? Colors.accent : Colors.border) as any,
 				} satisfies ViewStyle,
 				borderStyle,
 			]}
@@ -95,6 +90,7 @@ export function StepperInput({
 					{
 						fontFamily: Fonts.utility,
 						position: "absolute",
+						color: (focused ? Colors.accent : Colors.textSecondary) as any,
 					} satisfies TextStyle,
 					labelStyle,
 				]}

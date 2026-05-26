@@ -24,7 +24,7 @@ export function CategoryPill({ label, selected, compact }: CategoryPillProps) {
           borderWidth: 1,
           borderColor: selected ? Colors.accent : Colors.border,
           backgroundColor: selected ? Colors.accent : Colors.transparent,
-          alignSelf: 'center',
+          // alignSelf: 'center',
         } satisfies ViewStyle,
       ]}
     >

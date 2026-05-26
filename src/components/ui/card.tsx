@@ -9,7 +9,8 @@
 
 import React from 'react';
 import { View, type ViewStyle, type ViewProps } from 'react-native';
-import { Colors, Radii, Spacing } from '@/constants/theme';
+import { useAppColors } from '@/hooks/use-app-colors';
+import { Radii, Spacing } from '@/constants/theme';
 
 interface CardProps extends ViewProps {
   variant?: 'filled' | 'bordered';
@@ -29,6 +30,7 @@ export function Card({
   children,
   ...props
 }: CardProps) {
+  const Colors = useAppColors();
   return (
     <View
       {...props}

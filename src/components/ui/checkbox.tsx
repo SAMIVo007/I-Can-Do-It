@@ -21,37 +21,48 @@ interface CheckboxProps {
 }
 
 export function Checkbox({ checked, onToggle, size = 30 }: CheckboxProps) {
-	const animatedStyle = useAnimatedStyle(() => ({
-		backgroundColor: withTiming(checked ? Colors.success : "transparent", {
-			duration: 200,
-		}),
-		borderColor: withTiming(checked ? Colors.success : Colors.border, {
-			duration: 200,
-		}),
+	const overlayStyle = useAnimatedStyle(() => ({
+		opacity: withTiming(checked ? 1 : 0, { duration: 200 }),
 	}));
 
 	return (
 		<Pressable onPress={onToggle} hitSlop={8}>
 			<Animated.View
-				style={[
-					{
-						width: size,
-						height: size,
-						borderRadius: size / 2,
-						borderWidth: 2,
-						alignItems: "center",
-						justifyContent: "center",
-					} satisfies ViewStyle,
-					animatedStyle,
-				]}
+				style={{
+					width: size,
+					height: size,
+					borderRadius: size / 2,
+					borderWidth: 2,
+					alignItems: "center",
+					justifyContent: "center",
+					borderColor: Colors.border as any, // Base border color
+				}}
 			>
+				{/* Animated success background and border overlay */}
+				<Animated.View
+					style={[
+						{
+							position: "absolute",
+							top: -2, // Offset border width
+							left: -2,
+							right: -2,
+							bottom: -2,
+							borderRadius: size / 2,
+							backgroundColor: Colors.success as any,
+							borderColor: Colors.success as any,
+							borderWidth: 2,
+						},
+						overlayStyle,
+					]}
+				/>
+
 				{checked && (
 					<Animated.View entering={FadeIn.duration(150)}>
 						<SymbolView
 							name={{ ios: "checkmark", android: "check", web: "check" }}
 							size={20}
-							tintColor={Colors.white}
-							fallback={<Body style={{ color: Colors.white, fontSize: 18 }}>✓</Body>}
+							tintColor={Colors.white as any}
+							fallback={<Body style={{ color: Colors.white as any, fontSize: 18 }}>✓</Body>}
 						/>
 					</Animated.View>
 				)}

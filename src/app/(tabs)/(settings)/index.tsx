@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TextInput } from "@/components/ui/text-input";
 import { Body, Heading } from "@/components/ui/typography";
-import { Colors, Spacing } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
+import { Spacing } from "@/constants/theme";
 import { useStorage } from "@/hooks/use-storage";
 import {
 	cancelAllReminders,
@@ -17,6 +18,7 @@ import { Alert, ScrollView, Switch, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 export default function SettingsScreen() {
+	const Colors = useAppColors();
 	const [userName, setUserName] = useStorage("userName", "");
 	const [remindersEnabled, setRemindersEnabled] = useStorage(
 		"remindersEnabled",

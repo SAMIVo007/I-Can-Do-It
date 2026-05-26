@@ -6,22 +6,67 @@
  */
 
 import { Platform } from 'react-native';
+import { Color } from 'expo-router';
 
 // ─── Color Palette ─────────────────────────────────────────────
 export const Colors = {
-  background: '#FAF9F6',    // Pale Stone — primary background
-  surface: '#F5F5F5',       // Light Gray — flat card fill
-  textPrimary: '#333333',   // Obsidian — body text & UI labels
-  textHeading: '#121212',   // Pitch Black — major headings only
-  accent: '#36454F',        // Slate Blue — primary interaction
-  success: '#9DC183',       // Sage Green — progress & completion
-  border: '#E0E0E0',        // Platinum — 1px subtle borders
-  tertiary: '#52402B',      // Tertiary Brown
-  white: '#FFFFFF',
+  background: Platform.select({
+    ios: Color.ios.systemBackground,
+    android: Color.android.dynamic.background,
+    default: '#FAF9F6',
+  })!,
+  surface: Platform.select({
+    ios: Color.ios.secondarySystemBackground,
+    android: Color.android.dynamic.surfaceContainer,
+    default: '#F5F5F5',
+  })!,
+  textPrimary: Platform.select({
+    ios: Color.ios.label,
+    android: Color.android.dynamic.onBackground,
+    default: '#333333',
+  })!,
+  textHeading: Platform.select({
+    ios: Color.ios.label,
+    android: Color.android.dynamic.onBackground,
+    default: '#121212',
+  })!,
+  accent: Platform.select({
+    ios: Color.ios.systemBlue,
+    android: Color.android.dynamic.primary,
+    default: '#36454F',
+  })!,
+  success: Platform.select({
+    ios: Color.ios.systemGreen,
+    android: Color.android.dynamic.tertiary,
+    default: '#9DC183',
+  })!,
+  border: Platform.select({
+    ios: Color.ios.separator,
+    android: Color.android.dynamic.outline,
+    default: '#E0E0E0',
+  })!,
+  tertiary: Platform.select({
+    ios: Color.ios.systemBrown,
+    android: Color.android.dynamic.tertiary,
+    default: '#52402B',
+  })!,
+  white: Platform.select({
+    ios: Color.ios.systemBackground,
+    android: Color.android.dynamic.background,
+    default: '#FFFFFF',
+  })!,
   transparent: 'transparent',
-  textSecondary: '#888888',
-  danger: '#D9534F',
-} as const;
+  textSecondary: Platform.select({
+    ios: Color.ios.secondaryLabel,
+    android: Color.android.dynamic.onSurfaceVariant,
+    default: '#888888',
+  })!,
+  danger: Platform.select({
+    ios: Color.ios.systemRed,
+    android: Color.android.dynamic.error,
+    default: '#D9534F',
+  })!,
+};
 
 // ─── Typography Tokens ─────────────────────────────────────────
 export const Fonts = {

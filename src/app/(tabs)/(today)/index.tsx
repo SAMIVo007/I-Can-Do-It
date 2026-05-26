@@ -5,9 +5,11 @@
 
 import { Card } from "@/components/ui/card";
 import { HabitCard } from "@/components/ui/habit-card";
+import { HabitMenu } from "@/components/ui/habit-menu";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { Body, Heading } from "@/components/ui/typography";
-import { Colors, Fonts, Spacing } from "@/constants/theme";
+import { Fonts, Spacing } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
 import { useStorage } from "@/hooks/use-storage";
 import { useToday } from "@/hooks/use-today";
 import { useHabitStore } from "@/stores/habit-store";
@@ -15,10 +17,14 @@ import { toDateKey } from "@/utils/date";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React from "react";
-import { Pressable, ScrollView, View, type ViewStyle } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { Pressable, ScrollView, View, ViewStyle } from "react-native";
+import Animated, {
+	FadeInDown,
+	LinearTransition,
+} from "react-native-reanimated";
 
 export default function TodayScreen() {
+	const Colors = useAppColors();
 	const { dateFormatted, greeting } = useToday();
 	const [userName] = useStorage("userName", "there");
 	const today = toDateKey();
@@ -31,6 +37,7 @@ export default function TodayScreen() {
 	const logs = useHabitStore((s) => s.logs);
 	const toggleHabit = useHabitStore((s) => s.toggleHabit);
 	const updateProgress = useHabitStore((s) => s.updateProgress);
+	const deleteHabit = useHabitStore((s) => s.deleteHabit);
 
 	const getLogForHabit = (habitId: string) =>
 		logs.find((l) => l.habitId === habitId && l.date === today);
@@ -73,11 +80,11 @@ export default function TodayScreen() {
 		<View style={{ flex: 1, backgroundColor: Colors.background }}>
 			<ScrollView
 				contentInsetAdjustmentBehavior="automatic"
+				showsVerticalScrollIndicator={false}
 				contentContainerStyle={{
 					padding: Spacing.xl,
 					paddingBottom: Spacing.xxxl * 3, // Extra padding for the FAB
 					paddingTop: Spacing.xxxl,
-
 					gap: Spacing.xl,
 				}}
 			>
@@ -168,14 +175,19 @@ export default function TodayScreen() {
 								<Animated.View
 									key={habit.id}
 									entering={FadeInDown.duration(300).delay(300 + index * 50)}
+									layout={LinearTransition.springify()}
 								>
-									<HabitCard
-										habit={habit}
-										log={getLogForHabit(habit.id)}
-										onToggle={() => handleToggle(habit.id)}
-										onIncrement={(amount) => handleIncrement(habit.id, amount)}
-										onPress={() => router.push(`/habit/${habit.id}` as any)}
-									/>
+									<HabitMenu habitId={habit.id}>
+										<HabitCard
+											habit={habit}
+											log={getLogForHabit(habit.id)}
+											onToggle={() => handleToggle(habit.id)}
+											onIncrement={(amount) => handleIncrement(habit.id, amount)}
+											onPress={() => {
+												router.push(`/habit/${habit.id}` as any);
+											}}
+										/>
+									</HabitMenu>
 								</Animated.View>
 							))}
 						</View>
