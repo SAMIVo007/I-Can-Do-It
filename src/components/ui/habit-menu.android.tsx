@@ -6,12 +6,15 @@ import {
 	DropdownMenu,
 	DropdownMenuItem,
 	Host,
-	TextButton,
+	TextButton
 } from "@expo/ui/jetpack-compose";
-import { router } from "expo-router";
+import { padding } from "@expo/ui/jetpack-compose/modifiers";
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import React, { cloneElement, isValidElement, useState } from "react";
 import { Pressable, View } from "react-native";
+import { Body } from "./typography";
 
 export interface HabitMenuProps {
 	habitId: string;
@@ -59,28 +62,62 @@ export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
 							},
 						})
 					) : (
-						children
+						<>{children}</>
 					)}
 				</DropdownMenu.Trigger>
+
 				<DropdownMenu.Items>
 					<DropdownMenuItem
+						modifiers={[
+							padding(4, 0, 8, 0),        // Adds 16dp padding on all sides
+						]}
 						onClick={() => {
 							setExpanded(false);
 							router.push(`/add-habit?id=${habitId}` as any);
 						}}
 					>
+						<DropdownMenuItem.LeadingIcon>
+							<SymbolView
+								name={{ ios: "square.and.pencil", android: "edit", web: "edit" }}
+								size={22}
+								tintColor={Colors.textPrimary}
+								style={{ marginRight: 8 }}
+								fallback={
+									<Body style={{ color: Colors.textPrimary, fontSize: 18, marginRight: 8 }}>✕</Body>
+								}
+							/>
+						</DropdownMenuItem.LeadingIcon>
 						<DropdownMenuItem.Text>
 							<AndroidText>Edit Habit</AndroidText>
 						</DropdownMenuItem.Text>
 					</DropdownMenuItem>
+
 					<DropdownMenuItem
+						modifiers={[
+							padding(4, 0, 8, 0),        // Adds 16dp padding on all sides
+						]}
 						onClick={() => {
 							setExpanded(false);
 							handleDelete();
 						}}
+						elementColors={{
+							textColor: Colors.danger,
+							leadingIconColor: Colors.danger,
+						}}
 					>
+						<DropdownMenuItem.LeadingIcon>
+							<SymbolView
+								name={{ ios: "xmark.bin", android: "delete_forever", web: "delete_forever" }}
+								size={22}
+								tintColor={Colors.danger}
+								style={{ marginRight: 8 }}
+								fallback={
+									<Body style={{ color: Colors.danger, fontSize: 18, marginRight: 8 }}>✕</Body>
+								}
+							/>
+						</DropdownMenuItem.LeadingIcon>
 						<DropdownMenuItem.Text>
-							<AndroidText>Delete Habit</AndroidText>
+							<AndroidText color={Colors.danger as string}>Delete Habit</AndroidText>
 						</DropdownMenuItem.Text>
 					</DropdownMenuItem>
 				</DropdownMenu.Items>

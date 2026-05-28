@@ -4,7 +4,6 @@
  */
 
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import { Colors } from '@/constants/theme';
 import { useColorScheme } from 'react-native';
 
 export default function TabLayout() {

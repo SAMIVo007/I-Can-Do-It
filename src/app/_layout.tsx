@@ -88,6 +88,7 @@ export default function RootLayout() {
 					name="add-habit"
 					options={{
 						presentation: "transparentModal",
+						animation: "none",
 						headerShown: false,
 						title: "Add Habit",
 						contentStyle: { backgroundColor: "transparent" },

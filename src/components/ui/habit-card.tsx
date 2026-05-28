@@ -12,7 +12,6 @@ import { useAppColors } from "@/hooks/use-app-colors";
 import type { DailyLog, Habit } from "@/types/models";
 import { getProgress, isHabitComplete } from "@/types/models";
 import { SymbolView } from "expo-symbols";
-import React from "react";
 import { Pressable, View, type ViewStyle } from "react-native";
 import Animated from "react-native-reanimated";
 
@@ -77,7 +76,10 @@ export function HabitCard({
 							alignItems: "center",
 							justifyContent: "center",
 							opacity: pressed ? 0.7 : 1,
+							zIndex: 2
 						})}
+						android_ripple={{ borderless: true, radius: 80, foreground: true, color: Colors.accent }}
+						hitSlop={20}
 					>
 						{completed ? (
 							<SymbolView

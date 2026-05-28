@@ -12,12 +12,12 @@ import { useAppColors } from "@/hooks/use-app-colors";
 import { useHabitStore } from "@/stores/habit-store";
 import type { HabitCategory, HabitType } from "@/types/models";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
 	Alert,
 	Pressable,
-	ScrollView,
 	TextInput as RNTextInput,
+	ScrollView,
 	View,
 	type ViewStyle,
 } from "react-native";
@@ -37,34 +37,25 @@ export default function AddHabitScreen() {
 	const habits = useHabitStore((s) => s.habits);
 	const editHabit = editId ? habits.find((h) => h.id === editId) : undefined;
 
-	const [title, setTitle] = useState("");
-	const [category, setCategory] = useState<HabitCategory>("Health");
-	const [habitType, setHabitType] = useState<HabitType>("boolean");
-	const [target, setTarget] = useState("");
-	const [unit, setUnit] = useState("");
-	const [incrementValue, setIncrementValue] = useState("1");
+	const [title, setTitle] = useState(editHabit?.title ?? "");
+	const [category, setCategory] = useState<HabitCategory>(editHabit?.category ?? "Health");
+	const [habitType, setHabitType] = useState<HabitType>(editHabit?.type ?? "boolean");
+	const [target, setTarget] = useState(editHabit?.target ? String(editHabit.target) : "");
+	const [unit, setUnit] = useState(editHabit?.unit || "");
+	const [incrementValue, setIncrementValue] = useState(editHabit?.incrementValue ? String(editHabit.incrementValue) : "1");
+
+
 	const [isOpen, setIsOpen] = useState(true);
 	const inputRef = useRef<RNTextInput>(null);
 
 	useEffect(() => {
-		const timer = setTimeout(() => {
-			inputRef.current?.focus();
-		}, 400);
-		return () => clearTimeout(timer);
-	}, []);
-
-	useEffect(() => {
-		if (editHabit) {
-			setTitle(editHabit.title);
-			setCategory(editHabit.category);
-			setHabitType(editHabit.type);
-			setTarget(editHabit.target ? String(editHabit.target) : "");
-			setUnit(editHabit.unit || "");
-			setIncrementValue(
-				editHabit.incrementValue ? String(editHabit.incrementValue) : "1",
-			);
+		if (!editId) {
+			const timer = setTimeout(() => {
+				inputRef.current?.focus();
+			}, 400);
+			return () => clearTimeout(timer);
 		}
-	}, [editHabit]);
+	}, []);
 
 	const [titleError, setTitleError] = useState("");
 	const [targetError, setTargetError] = useState("");
