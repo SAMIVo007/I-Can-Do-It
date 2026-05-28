@@ -4,7 +4,7 @@
  */
 
 import { Colors, Fonts, FontSizes, Spacing } from "@/constants/theme";
-import React, { useState } from "react";
+import React, { forwardRef, useState } from "react";
 import {
 	TextInput as RNTextInput,
 	View,
@@ -23,7 +23,7 @@ interface TextInputProps extends Omit<RNTextInputProps, "style"> {
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
-export function TextInput({
+export const TextInput = forwardRef<RNTextInput, TextInputProps>(({
 	label,
 	value,
 	onChangeText,
@@ -31,7 +31,7 @@ export function TextInput({
 	onFocus,
 	onBlur,
 	...props
-}: TextInputProps) {
+}: TextInputProps, ref) => {
 	const [focused, setFocused] = useState(false);
 	const [showPlaceholder, setShowPlaceholder] = useState(false);
 	const hasValue = Boolean(value && value.length > 0);
@@ -72,6 +72,7 @@ export function TextInput({
 				{label}
 			</Animated.Text>
 			<RNTextInput
+				ref={ref}
 				value={value}
 				onChangeText={onChangeText}
 				onFocus={(e) => {
@@ -100,4 +101,4 @@ export function TextInput({
 			/>
 		</AnimatedView>
 	);
-}
+});

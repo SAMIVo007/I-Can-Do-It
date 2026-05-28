@@ -12,11 +12,12 @@ import { useAppColors } from "@/hooks/use-app-colors";
 import { useHabitStore } from "@/stores/habit-store";
 import type { HabitCategory, HabitType } from "@/types/models";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
 	Alert,
 	Pressable,
 	ScrollView,
+	TextInput as RNTextInput,
 	View,
 	type ViewStyle,
 } from "react-native";
@@ -43,6 +44,14 @@ export default function AddHabitScreen() {
 	const [unit, setUnit] = useState("");
 	const [incrementValue, setIncrementValue] = useState("1");
 	const [isOpen, setIsOpen] = useState(true);
+	const inputRef = useRef<RNTextInput>(null);
+
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			inputRef.current?.focus();
+		}, 400);
+		return () => clearTimeout(timer);
+	}, []);
 
 	useEffect(() => {
 		if (editHabit) {
@@ -186,7 +195,7 @@ export default function AddHabitScreen() {
 								if (titleError) setTitleError("");
 							}}
 							placeholder="e.g., Morning Run, Read 20 Pages"
-							autoFocus
+							ref={inputRef}
 						/>
 						{titleError ? (
 							<Body size="sm" style={{ color: Colors.danger, marginTop: Spacing.xs }}>

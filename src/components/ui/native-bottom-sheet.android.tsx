@@ -17,24 +17,24 @@ export function NativeBottomSheet({
 	const [mounted, setMounted] = useState(isOpen);
 	const sheetRef = useRef<ModalBottomSheetRef>(null);
 
-	// useEffect(() => {
-	// 	if (isOpen && !mounted) {
-	// 		setMounted(true);
-	// 	} else if (!isOpen && mounted) {
-	// 		sheetRef.current?.hide().then(() => {
-	// 			setMounted(false);
-	// 			onClosed();
-	// 		});
-	// 	}
-	// }, [isOpen]);
+	useEffect(() => {
+		if (isOpen && !mounted) {
+			setMounted(true);
+		} else if (!isOpen && mounted) {
+			sheetRef.current?.hide().then(() => {
+				setMounted(false);
+				onClosed();
+			});
+		}
+	}, [isOpen]);
 
 	return (
 		<Host matchContents>
-			{isOpen && (
+			{mounted && (
 				<ModalBottomSheet
 					ref={sheetRef}
 					onDismissRequest={() => {
-						// setMounted(false);
+						setMounted(false);
 						onClosed();
 					}}
 					skipPartiallyExpanded={true}
