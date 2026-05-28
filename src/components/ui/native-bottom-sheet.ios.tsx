@@ -1,6 +1,6 @@
-import React from 'react';
-import { Host, BottomSheet, RNHostView, Group } from '@expo/ui/swift-ui';
+import { BottomSheet, Group, Host, RNHostView } from '@expo/ui/swift-ui';
 import { presentationDetents, presentationDragIndicator } from '@expo/ui/swift-ui/modifiers';
+import React from 'react';
 
 export interface NativeBottomSheetProps {
   isOpen: boolean;
@@ -22,7 +22,7 @@ export function NativeBottomSheet({ isOpen, onClosed, children }: NativeBottomSh
           presentationDragIndicator('visible')
         ]}>
           <RNHostView matchContents>
-            {children}
+            {children as any}
           </RNHostView>
         </Group>
       </BottomSheet>

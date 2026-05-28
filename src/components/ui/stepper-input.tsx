@@ -114,6 +114,7 @@ export function StepperInput({
 						padding: Spacing.xs,
 						zIndex: 1,
 					})}
+					android_ripple={{ borderless: true, color: Colors.accent, radius: 28, foreground: true }}
 				>
 					<SymbolView
 						name={{ ios: "minus.circle", android: "remove", web: "remove" }}
@@ -193,6 +194,7 @@ export function StepperInput({
 						padding: Spacing.xs,
 						zIndex: 1,
 					})}
+					android_ripple={{ borderless: true, color: Colors.accent, radius: 28, foreground: true }}
 				>
 					<SymbolView
 						name={{ ios: "plus.circle", android: "add", web: "add" }}

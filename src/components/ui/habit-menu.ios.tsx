@@ -1,4 +1,3 @@
-import React from 'react';
 import { Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useHabitStore } from '@/stores/habit-store';
@@ -28,7 +27,7 @@ export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
   return (
     <Host matchContents>
       <Menu
-        label={<RNHostView matchContents>{trigger}</RNHostView>}
+        label={<RNHostView matchContents>{trigger as any}</RNHostView>}
         onPrimaryAction={isIcon ? undefined : () => router.push(`/habit/${habitId}` as any)}
       >
         <Button label="Edit Habit" systemImage="pencil" onPress={() => router.push(`/add-habit?id=${habitId}` as any)} />

@@ -1,5 +1,6 @@
 import type { ModalBottomSheetRef } from "@expo/ui/jetpack-compose";
-import { Host, ModalBottomSheet, RNHostView } from "@expo/ui/jetpack-compose";
+import { Box, Column, Host, ModalBottomSheet, RNHostView } from "@expo/ui/jetpack-compose";
+import { background, clip, fillMaxWidth, height, padding, Shapes, width } from "@expo/ui/jetpack-compose/modifiers";
 import React, { useEffect, useRef, useState } from "react";
 
 export interface NativeBottomSheetProps {
@@ -28,7 +29,7 @@ export function NativeBottomSheet({
 	}, [isOpen]);
 
 	return (
-		<Host>
+		<Host matchContents>
 			{mounted && (
 				<ModalBottomSheet
 					ref={sheetRef}
@@ -38,7 +39,12 @@ export function NativeBottomSheet({
 					}}
 					skipPartiallyExpanded={true}
 				>
-					<RNHostView matchContents>{children}</RNHostView>
+					<ModalBottomSheet.DragHandle>
+						<Column horizontalAlignment="center" modifiers={[fillMaxWidth(), padding(0, 12, 0, 12)]}>
+							<Box modifiers={[width(54), height(6), clip(Shapes.Circle), background('#777777ff')]} />
+						</Column>
+					</ModalBottomSheet.DragHandle>
+					<RNHostView matchContents>{children as any}</RNHostView>
 				</ModalBottomSheet>
 			)}
 		</Host>

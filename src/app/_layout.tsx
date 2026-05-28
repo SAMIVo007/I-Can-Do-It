@@ -17,10 +17,10 @@ import {
 	SpaceGrotesk_500Medium,
 	SpaceGrotesk_700Bold,
 } from "@expo-google-fonts/space-grotesk";
-import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { DefaultTheme, ThemeProvider } from "expo-router";
 import { Stack } from "expo-router/stack";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useCallback, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useColorScheme } from "react-native";
 
 SplashScreen.preventAutoHideAsync();
