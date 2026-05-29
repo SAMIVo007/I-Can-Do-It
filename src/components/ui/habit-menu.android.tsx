@@ -13,7 +13,7 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import React, { cloneElement, isValidElement, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable } from "react-native";
 import { Body } from "./typography";
 
 export interface HabitMenuProps {
@@ -46,12 +46,14 @@ export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
 				<DropdownMenu.Trigger>
 					{isIcon ? (
 						<Pressable
+							hitSlop={20}
+							android_ripple={{ borderless: true, color: Colors.border, radius: 20, foreground: true }}
 							onPress={() => {
 								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 								setExpanded(true);
 							}}
 						>
-							<View pointerEvents="none">{children}</View>
+							{children}
 						</Pressable>
 					) : isValidElement(children) ? (
 						cloneElement(children as React.ReactElement<any>, {

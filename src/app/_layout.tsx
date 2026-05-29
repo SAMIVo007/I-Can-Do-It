@@ -100,11 +100,11 @@ export default function RootLayout() {
 				<Stack.Screen
 					name="habit/[id]"
 					options={{
-						headerShown: true,
+						headerShown: false,
 						title: "Habit Details",
 						headerStyle: { backgroundColor: Colors.background as string },
 						headerShadowVisible: false,
-						headerTintColor: Colors.accent as string,
+						headerTintColor: Colors.textPrimary as string,
 					}}
 				/>
 				<Stack.Screen name="+not-found" />

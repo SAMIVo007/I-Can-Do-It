@@ -5,6 +5,7 @@
 
 
 import { Card } from "@/components/ui/card";
+import { FAB } from "@/components/ui/fab";
 import { HabitCard } from "@/components/ui/habit-card";
 import { HabitMenu } from "@/components/ui/habit-menu";
 import { ProgressRing } from "@/components/ui/progress-ring";
@@ -22,6 +23,11 @@ import { Pressable, ScrollView, View, ViewStyle } from "react-native";
 import Animated, {
 	FadeInDown,
 	LinearTransition,
+	useAnimatedScrollHandler,
+	useSharedValue,
+	withDelay,
+	withSequence,
+	withTiming,
 } from "react-native-reanimated";
 
 export default function TodayScreen() {
@@ -29,6 +35,33 @@ export default function TodayScreen() {
 	const { dateFormatted, greeting } = useToday();
 	const [userName] = useStorage("userName", "there");
 	const today = toDateKey();
+
+	const expandTarget = useSharedValue(1); // 1 = expanded, 0 = collapsed
+	const wasAtTop = useSharedValue(true);
+
+	// Initial timeout when screen loads
+	React.useEffect(() => {
+		expandTarget.value = withDelay(2500, withTiming(0, { duration: 0 }));
+	}, []);
+
+	const scrollHandler = useAnimatedScrollHandler({
+		onScroll: (e) => {
+			const isAtTop = e.contentOffset.y <= 20;
+			
+			if (isAtTop && !wasAtTop.value) {
+				// Reached top: expand, wait 2.5s, then collapse
+				expandTarget.value = withSequence(
+					withTiming(1, { duration: 0 }),
+					withDelay(2500, withTiming(0, { duration: 0 }))
+				);
+			} else if (!isAtTop && wasAtTop.value) {
+				// Scrolled down: immediately collapse
+				expandTarget.value = 0;
+			}
+			
+			wasAtTop.value = isAtTop;
+		},
+	});
 
 	const allHabits = useHabitStore((s) => s.habits);
 	const habits = React.useMemo(
@@ -79,7 +112,9 @@ export default function TodayScreen() {
 
 	return (
 		<View style={{ flex: 1, backgroundColor: Colors.background }}>
-			<ScrollView
+			<Animated.ScrollView
+				onScroll={scrollHandler}
+				scrollEventThrottle={16}
 				contentInsetAdjustmentBehavior="automatic"
 				showsVerticalScrollIndicator={false}
 				contentContainerStyle={{
@@ -194,38 +229,10 @@ export default function TodayScreen() {
 						</View>
 					)}
 				</Animated.View>
-			</ScrollView>
+			</Animated.ScrollView>
 
-			{/* FAB — Add Habit (Fixed) */}
-			<Pressable
-				onPress={() => router.push("/add-habit" as any)}
-				style={({ pressed }) =>
-					({
-						position: "absolute",
-						bottom: Spacing.xxxl,
-						right: Spacing.xl,
-						width: 56,
-						height: 56,
-						borderRadius: 28,
-						backgroundColor: Colors.accent,
-						alignItems: "center",
-						justifyContent: "center",
-						opacity: pressed ? 0.85 : 1,
-						boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-					}) satisfies ViewStyle
-				}
-			>
-				<Body
-					style={{
-						color: Colors.white,
-						fontSize: 28,
-						lineHeight: 30,
-						fontFamily: Fonts.utilityLight,
-					}}
-				>
-					+
-				</Body>
-			</Pressable>
+			{/* FAB — Add Habit */}
+			<FAB onPress={() => router.push("/add-habit" as any)} isExpanded={expandTarget} />
 		</View>
 	);
 }

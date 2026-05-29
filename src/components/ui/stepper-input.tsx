@@ -1,7 +1,7 @@
 import { Body } from "@/components/ui/typography";
 import { Colors, Fonts, FontSizes, Spacing } from "@/constants/theme";
 import { SymbolView } from "expo-symbols";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
 	Pressable,
 	TextInput as RNTextInput,
@@ -114,7 +114,7 @@ export function StepperInput({
 						padding: Spacing.xs,
 						zIndex: 1,
 					})}
-					android_ripple={{ borderless: true, color: Colors.accent, radius: 28, foreground: true }}
+					android_ripple={{ borderless: true, color: numericValue <= min ? Colors.transparent : Colors.accent, radius: 28, foreground: true }}
 				>
 					<SymbolView
 						name={{ ios: "minus.circle", android: "remove", web: "remove" }}

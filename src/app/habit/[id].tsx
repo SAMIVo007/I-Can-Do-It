@@ -5,6 +5,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CategoryPill } from "@/components/ui/category-pill";
+import { HabitMenu } from "@/components/ui/habit-menu";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { TextInput } from "@/components/ui/text-input";
 import { Body, Heading } from "@/components/ui/typography";
@@ -14,23 +15,24 @@ import { useHabitStore } from "@/stores/habit-store";
 import { getProgress, isHabitComplete } from "@/types/models";
 import { toDateKey } from "@/utils/date";
 import * as Haptics from "expo-haptics";
-import { Stack, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import React, { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { useState } from "react";
+import { Pressable, ScrollView, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { HabitMenu } from "@/components/ui/habit-menu";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function HabitDetailScreen() {
 	const Colors = useAppColors();
+	const insets = useSafeAreaInsets();
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const habits = useHabitStore((s) => s.habits);
 	const habit = habits.find((h) => h.id === id);
-	const getLogForHabit = useHabitStore((s) => s.getLogForHabit);
+	const today = toDateKey();
+	const log = useHabitStore((s) => s.logs.find(l => l.habitId === id && l.date === today));
 	const updateProgress = useHabitStore((s) => s.updateProgress);
 	const toggleHabit = useHabitStore((s) => s.toggleHabit);
 	const deleteHabit = useHabitStore((s) => s.deleteHabit);
-	const today = toDateKey();
 	const [progressInput, setProgressInput] = useState("");
 
 	if (!habit) {
@@ -48,7 +50,6 @@ export default function HabitDetailScreen() {
 		);
 	}
 
-	const log = getLogForHabit(habit.id, today);
 	const progress = getProgress(habit, log);
 	const completed = isHabitComplete(habit, log);
 
@@ -65,28 +66,50 @@ export default function HabitDetailScreen() {
 
 	return (
 		<>
-			<Stack.Screen
-				options={{
-					headerRight: () => (
-						<HabitMenu habitId={habit.id} isIcon>
-							<SymbolView
-								name={
-									{
-										ios: "ellipsis.circle",
-										android: "more_vert",
-										web: "more_horiz",
-									} as any
-								}
-								size={24}
-								tintColor={Colors.accent}
-								fallback={
-									<Body style={{ color: Colors.accent, fontSize: 20 }}>⋮</Body>
-								}
-							/>
-						</HabitMenu>
-					),
-				}}
-			/>
+			<View style={{
+				paddingTop: insets.top + 16,
+				paddingHorizontal: Spacing.xl,
+				paddingBottom: Spacing.md,
+				flexDirection: 'row',
+				alignItems: 'center',
+				justifyContent: 'space-between',
+				backgroundColor: Colors.background,
+			}}>
+				<Pressable
+					onPress={() => router.back()}
+					hitSlop={20}
+					android_ripple={{ borderless: true, color: Colors.border, radius: 20, foreground: true }}
+				>
+					<SymbolView
+						name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
+						size={24}
+						tintColor={Colors.textPrimary}
+						fallback={<Body style={{ color: Colors.textPrimary, fontSize: 18 }}>←</Body>}
+					/>
+				</Pressable>
+
+				<Body style={{ flex: 1, textAlign: "left", paddingHorizontal: 16, fontSize: 20, fontWeight: 'medium' }}>
+					Habit Details
+				</Body>
+
+				<HabitMenu habitId={habit.id} isIcon>
+					<SymbolView
+						name={
+							{
+								ios: "ellipsis.circle",
+								android: "more_vert",
+								web: "more_horiz",
+							}
+						}
+						size={24}
+						tintColor={Colors.textPrimary}
+						fallback={
+							<Body style={{ color: Colors.textPrimary, fontSize: 20 }}>⋮</Body>
+						}
+					/>
+				</HabitMenu>
+			</View>
+
 			<ScrollView
 				contentInsetAdjustmentBehavior="automatic"
 				contentContainerStyle={{ padding: Spacing.xl, gap: Spacing.xl }}
@@ -125,7 +148,19 @@ export default function HabitDetailScreen() {
 							)}
 							<DetailRow
 								label="Status"
-								value={completed ? "✅ Complete" : "⏳ In Progress"}
+								value={
+									<View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+										<SymbolView
+											name={completed ?
+												{ ios: "checkmark.circle.fill", android: "check_circle", web: "check_circle" } :
+												{ ios: "hourglass", android: "hourglass_top", web: "hourglass_top" }}
+											size={20}
+											tintColor={completed ? Colors.success : Colors.accent}
+											fallback={null}
+										/>
+										<Body weight="medium">{completed ? "Complete" : "In Progress"}</Body>
+									</View>
+								}
 							/>
 						</View>
 					</Card>
@@ -162,22 +197,23 @@ export default function HabitDetailScreen() {
 						</View>
 					)}
 				</Animated.View>
-			</ScrollView>
+			</ScrollView >
 		</>
 	);
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
 	return (
 		<View
 			style={{
 				flexDirection: "row",
 				justifyContent: "space-between",
+				alignItems: "center",
 				paddingVertical: Spacing.xs,
 			}}
 		>
 			<Body secondary>{label}</Body>
-			<Body weight="medium">{value}</Body>
+			{typeof value === "string" ? <Body weight="medium">{value}</Body> : value}
 		</View>
 	);
 }
