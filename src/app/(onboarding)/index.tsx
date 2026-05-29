@@ -4,7 +4,8 @@
  */
 
 import React from 'react';
-import { View, ScrollView, Pressable, type ViewStyle } from 'react-native';
+import { View, Pressable, type ViewStyle } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { Colors, Spacing, Radii, Fonts, FontSizes } from '@/constants/theme';
@@ -29,7 +30,7 @@ export default function OnboardingGoalScreen() {
   const canContinue = userName.trim().length > 0 && goalTitle.trim().length > 0;
 
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
       contentContainerStyle={{
         flexGrow: 1,
         padding: Spacing.xl,
@@ -118,7 +119,7 @@ export default function OnboardingGoalScreen() {
           disabled={!canContinue}
         />
       </Animated.View>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 

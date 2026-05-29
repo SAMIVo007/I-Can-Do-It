@@ -22,6 +22,7 @@ import { Stack } from "expo-router/stack";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect } from "react";
 import { useColorScheme } from "react-native";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -74,41 +75,43 @@ export default function RootLayout() {
 	}
 
 	return (
-		<ThemeProvider value={SlateTheme}>
-			<Stack screenOptions={{ headerShown: false }}>
-				<Stack.Screen
-					name="(onboarding)"
-					options={{
-						presentation: "modal",
-						animation: "slide_from_bottom",
-					}}
-				/>
-				<Stack.Screen name="(tabs)" />
-				<Stack.Screen
-					name="add-habit"
-					options={{
-						presentation: "transparentModal",
-						animation: "none",
-						headerShown: false,
-						title: "Add Habit",
-						contentStyle: { backgroundColor: "transparent" },
-						headerStyle: { backgroundColor: Colors.background as string },
-						headerShadowVisible: false,
-						headerTintColor: Colors.accent as string,
-					}}
-				/>
-				<Stack.Screen
-					name="habit/[id]"
-					options={{
-						headerShown: false,
-						title: "Habit Details",
-						headerStyle: { backgroundColor: Colors.background as string },
-						headerShadowVisible: false,
-						headerTintColor: Colors.textPrimary as string,
-					}}
-				/>
-				<Stack.Screen name="+not-found" />
-			</Stack>
-		</ThemeProvider>
+		<KeyboardProvider>
+			<ThemeProvider value={SlateTheme}>
+				<Stack screenOptions={{ headerShown: false }}>
+					<Stack.Screen
+						name="(onboarding)"
+						options={{
+							presentation: "modal",
+							animation: "slide_from_bottom",
+						}}
+					/>
+					<Stack.Screen name="(tabs)" />
+					<Stack.Screen
+						name="add-habit"
+						options={{
+							presentation: "transparentModal",
+							animation: "none",
+							headerShown: false,
+							title: "Add Habit",
+							contentStyle: { backgroundColor: "transparent" },
+							headerStyle: { backgroundColor: Colors.background as string },
+							headerShadowVisible: false,
+							headerTintColor: Colors.accent as string,
+						}}
+					/>
+					<Stack.Screen
+						name="habit/[id]"
+						options={{
+							headerShown: false,
+							title: "Habit Details",
+							headerStyle: { backgroundColor: Colors.background as string },
+							headerShadowVisible: false,
+							headerTintColor: Colors.textPrimary as string,
+						}}
+					/>
+					<Stack.Screen name="+not-found" />
+				</Stack>
+			</ThemeProvider>
+		</KeyboardProvider>
 	);
 }

@@ -18,7 +18,8 @@ import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -110,10 +111,11 @@ export default function HabitDetailScreen() {
 				</HabitMenu>
 			</View>
 
-			<ScrollView
+			<KeyboardAwareScrollView
 				contentInsetAdjustmentBehavior="automatic"
 				contentContainerStyle={{ padding: Spacing.xl, gap: Spacing.xl }}
 				style={{ backgroundColor: Colors.background }}
+				bottomOffset={62}
 			>
 				<Animated.View
 					entering={FadeInDown.duration(400).delay(200)}
@@ -197,7 +199,7 @@ export default function HabitDetailScreen() {
 						</View>
 					)}
 				</Animated.View>
-			</ScrollView >
+			</KeyboardAwareScrollView>
 		</>
 	);
 }

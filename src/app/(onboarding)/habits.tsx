@@ -4,7 +4,8 @@
  */
 
 import React, { useState } from 'react';
-import { View, ScrollView, Pressable, type ViewStyle } from 'react-native';
+import { View, Pressable, type ViewStyle } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
@@ -42,7 +43,7 @@ export default function OnboardingHabitsScreen() {
   };
 
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
       contentContainerStyle={{
         flexGrow: 1,
         padding: Spacing.xl,
@@ -151,7 +152,7 @@ export default function OnboardingHabitsScreen() {
           disabled={!canContinue}
         />
       </Animated.View>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 

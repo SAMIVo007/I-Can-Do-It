@@ -21,6 +21,7 @@ import {
 	View,
 	type ViewStyle,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 const CATEGORIES: HabitCategory[] = [
 	"Health",
@@ -135,11 +136,14 @@ export default function AddHabitScreen() {
 	return (
 		<View style={{ flex: 1 }}>
 			<NativeBottomSheet isOpen={isOpen} onClosed={handleClose}>
-				<ScrollView
+				<KeyboardAwareScrollView
 					contentContainerStyle={{
 						padding: Spacing.xl,
+						paddingBottom: Spacing.xxxl * 2,
 						gap: Spacing.xl,
 					}}
+					showsVerticalScrollIndicator={false}
+					bottomOffset={62}
 					style={
 						{
 							backgroundColor: Colors.background,
@@ -373,7 +377,7 @@ export default function AddHabitScreen() {
 						size="lg"
 						fullWidth
 					/>
-				</ScrollView>
+				</KeyboardAwareScrollView>
 			</NativeBottomSheet>
 		</View>
 	);

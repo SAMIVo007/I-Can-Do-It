@@ -14,7 +14,8 @@ import {
 	requestNotificationPermissions,
 } from "@/utils/notifications";
 import React from "react";
-import { Alert, ScrollView, Switch, View } from "react-native";
+import { Alert, Switch, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 export default function SettingsScreen() {
@@ -42,7 +43,7 @@ export default function SettingsScreen() {
 	};
 
 	return (
-		<ScrollView
+		<KeyboardAwareScrollView
 			contentInsetAdjustmentBehavior="automatic"
 			contentContainerStyle={{
 				padding: Spacing.xl,
@@ -177,7 +178,7 @@ export default function SettingsScreen() {
 					</View>
 				</Card>
 			</Animated.View>
-		</ScrollView>
+		</KeyboardAwareScrollView>
 	);
 }
 
