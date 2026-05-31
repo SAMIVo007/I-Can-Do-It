@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { FAB } from "@/components/ui/fab";
 import { HabitCard } from "@/components/ui/habit-card";
 import { HabitMenu } from "@/components/ui/habit-menu";
-import { ProgressRing } from "@/components/ui/progress-ring";
+import { NativeCircularProgress } from "@/components/ui/native-progress";
 import { Body, Heading } from "@/components/ui/typography";
 import { Fonts, Spacing } from "@/constants/theme";
 import { useAppColors } from "@/hooks/use-app-colors";
@@ -157,7 +157,7 @@ export default function TodayScreen() {
 								} satisfies ViewStyle
 							}
 						>
-							<ProgressRing
+							<NativeCircularProgress
 								progress={completionRate}
 								size={80}
 								strokeWidth={6}

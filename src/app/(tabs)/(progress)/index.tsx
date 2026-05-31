@@ -1,15 +1,25 @@
 /**
  * Progress — Analytics screen.
- * Shows streak, total days, monthly rate, week circles, and monthly bar chart.
+ *
+ * Layout:
+ *   1. Header — title + subtitle
+ *   2. Today's Score — hero circular progress (native on Android)
+ *   3. Stats Row — streak + productive days
+ *   4. This Week — 7-day completion circles
+ *   5. Habit Breakdown — per-habit linear progress bars
+ *   6. Monthly Overview — bar chart with chevron month navigator
  */
 
 import { BarChart } from "@/components/ui/bar-chart";
 import { Card } from "@/components/ui/card";
+import {
+	NativeLinearProgress
+} from "@/components/ui/native-progress";
 import { StatCard } from "@/components/ui/stat-card";
 import { Body, Heading } from "@/components/ui/typography";
 import { WeekCircles } from "@/components/ui/week-circles";
-import { useAppColors } from "@/hooks/use-app-colors";
 import { Spacing } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
 import { useHabitStore } from "@/stores/habit-store";
 import type { DaySummary, MonthlyBar } from "@/types/models";
 import {
@@ -19,22 +29,61 @@ import {
 	getShortMonthName,
 	toDateKey,
 } from "@/utils/date";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, ScrollView, View, type ViewStyle } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
+
+// ─── Month names for the navigator ────────────────────────────
+
+const MONTH_NAMES = [
+	"January",
+	"February",
+	"March",
+	"April",
+	"May",
+	"June",
+	"July",
+	"August",
+	"September",
+	"October",
+	"November",
+	"December",
+] as const;
 
 export default function ProgressScreen() {
 	const Colors = useAppColors();
 	const now = new Date();
 	const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
-	const [selectedYear] = useState(now.getFullYear());
+	const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
 	const habits = useHabitStore((s) => s.habits);
 	const logs = useHabitStore((s) => s.logs);
 
-	const activeHabits = useMemo(() => habits.filter((h) => h.isActive), [habits]);
+	const activeHabits = useMemo(
+		() => habits.filter((h) => h.isActive),
+		[habits],
+	);
 	const today = toDateKey();
+
+	// ─── Today's completion rate ────────────────────────────────
+
+	const todayCompletion = useMemo(() => {
+		if (activeHabits.length === 0) return { rate: 0, completed: 0, total: 0 };
+		const completed = activeHabits.filter((h) => {
+			const log = logs.find((l) => l.habitId === h.id && l.date === today);
+			if (!log) return false;
+			if (h.type === "boolean") return log.value === 1;
+			return log.value >= (h.target ?? 1);
+		}).length;
+		return {
+			rate: completed / activeHabits.length,
+			completed,
+			total: activeHabits.length,
+		};
+	}, [activeHabits, logs, today]);
+
+	// ─── Current streak ────────────────────────────────────────
 
 	const streak = useMemo(() => {
 		if (activeHabits.length === 0) return 0;
@@ -58,7 +107,27 @@ export default function ProgressScreen() {
 		return s;
 	}, [activeHabits, logs]);
 
-	const totalDays = useMemo(() => new Set(logs.map((l) => l.date)).size, [logs]);
+	// ─── Productive days (≥50% completion) ─────────────────────
+
+	const productiveDays = useMemo(() => {
+		if (activeHabits.length === 0) return 0;
+		const dateSet = new Set(logs.map((l) => l.date));
+		let count = 0;
+		for (const dk of dateSet) {
+			const completed = activeHabits.filter((h) => {
+				const log = logs.find((l) => l.habitId === h.id && l.date === dk);
+				if (!log) return false;
+				if (h.type === "boolean") return log.value === 1;
+				return log.value >= (h.target ?? 1);
+			}).length;
+			if (completed / activeHabits.length >= 0.5) {
+				count++;
+			}
+		}
+		return count;
+	}, [activeHabits, logs]);
+
+	// ─── This week summary ─────────────────────────────────────
 
 	const weekSummary = useMemo((): DaySummary[] => {
 		const weekDates = getCurrentWeekDates();
@@ -85,6 +154,36 @@ export default function ProgressScreen() {
 		});
 	}, [activeHabits, logs, today]);
 
+	// ─── Per-habit breakdown for today ──────────────────────────
+
+	const habitBreakdown = useMemo(() => {
+		return activeHabits.map((h) => {
+			const log = logs.find((l) => l.habitId === h.id && l.date === today);
+			let progress = 0;
+			if (log) {
+				if (h.type === "boolean") {
+					progress = log.value;
+				} else {
+					progress = Math.min(log.value / (h.target ?? 1), 1);
+				}
+			}
+			return {
+				id: h.id,
+				title: h.title,
+				progress,
+				isComplete: h.type === "boolean" ? log?.value === 1 : log ? log.value >= (h.target ?? 1) : false,
+				detail:
+					h.type === "quantitative"
+						? `${log?.value ?? 0} / ${h.target ?? "?"} ${h.unit ?? ""}`
+						: progress >= 1
+							? "Done"
+							: "Not done",
+			};
+		});
+	}, [activeHabits, logs, today]);
+
+	// ─── Monthly data ──────────────────────────────────────────
+
 	const monthlyData = useMemo((): MonthlyBar[] => {
 		const days = getDaysInMonth(selectedMonth, selectedYear);
 		const bars: MonthlyBar[] = [];
@@ -110,17 +209,46 @@ export default function ProgressScreen() {
 		const daysWithHabits = monthlyData.filter((d) => d.totalHabits > 0);
 		if (daysWithHabits.length === 0) return 0;
 		return Math.round(
-			(daysWithHabits.filter((d) => d.habitsCompleted >= d.totalHabits).length /
+			(daysWithHabits.filter((d) => d.habitsCompleted >= d.totalHabits)
+				.length /
 				daysWithHabits.length) *
-				100,
+			100,
 		);
 	}, [monthlyData]);
 
-	const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
+	// ─── Month navigation ──────────────────────────────────────
+
+	const goToPrevMonth = () => {
+		if (selectedMonth === 0) {
+			setSelectedMonth(11);
+			setSelectedYear((y) => y - 1);
+		} else {
+			setSelectedMonth((m) => m - 1);
+		}
+	};
+
+	const goToNextMonth = () => {
+		// Don't go past current month
+		if (
+			selectedMonth === now.getMonth() &&
+			selectedYear === now.getFullYear()
+		)
+			return;
+		if (selectedMonth === 11) {
+			setSelectedMonth(0);
+			setSelectedYear((y) => y + 1);
+		} else {
+			setSelectedMonth((m) => m + 1);
+		}
+	};
+
+	const isCurrentMonth =
+		selectedMonth === now.getMonth() && selectedYear === now.getFullYear();
 
 	return (
 		<ScrollView
 			contentInsetAdjustmentBehavior="automatic"
+			showsVerticalScrollIndicator={false}
 			contentContainerStyle={{
 				padding: Spacing.xl,
 				paddingBottom: Spacing.xxxl * 2,
@@ -129,6 +257,7 @@ export default function ProgressScreen() {
 			}}
 			style={{ backgroundColor: Colors.background }}
 		>
+			{/* ── Header ──────────────────────────────────────────── */}
 			<Animated.View
 				entering={FadeInDown.duration(400)}
 				style={{ gap: Spacing.xs }}
@@ -137,42 +266,29 @@ export default function ProgressScreen() {
 				<Body secondary>Track your consistency and build momentum.</Body>
 			</Animated.View>
 
+			{/* ── Stats Row ────────────────────────────────────── */}
 			<Animated.View entering={FadeInDown.duration(400).delay(100)}>
-				<View style={{ flexDirection: "row", gap: Spacing.md } satisfies ViewStyle}>
+				<View
+					style={{ flexDirection: "row", gap: Spacing.md } satisfies ViewStyle}
+				>
 					<StatCard
 						label="Current Streak"
 						value={streak}
 						unit="days"
 						icon={
 							<Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-								<Path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill={Colors.accent} />
-							</Svg>
-						}
-					/>
-					<StatCard
-						label="Total Days"
-						value={totalDays}
-						unit="days"
-						icon={
-							<Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
 								<Path
-									d="M19 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zM16 2v4M8 2v4M3 10h18"
-									stroke={Colors.accent}
-									strokeWidth={2}
-									strokeLinecap="round"
+									d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
+									fill={Colors.accent}
 								/>
 							</Svg>
 						}
 					/>
-				</View>
-			</Animated.View>
-
-			<Animated.View entering={FadeInDown.duration(400).delay(200)}>
-				<Card variant="filled" padding="lg">
-					<View style={{ gap: Spacing.sm }}>
-						<View
-							style={{ flexDirection: "row", alignItems: "center", gap: Spacing.xs }}
-						>
+					<StatCard
+						label="Productive Days"
+						value={productiveDays}
+						unit="days"
+						icon={
 							<Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
 								<Path
 									d="M12 2a10 10 0 100 20 10 10 0 000-20z"
@@ -180,53 +296,35 @@ export default function ProgressScreen() {
 									strokeWidth={2}
 								/>
 								<Path
-									d="M12 6v6l4 2"
+									d="M9 12l2 2 4-4"
 									stroke={Colors.success}
 									strokeWidth={2}
 									strokeLinecap="round"
+									strokeLinejoin="round"
 								/>
 							</Svg>
-							<Body size="sm" secondary>
-								Monthly Rate
-							</Body>
-						</View>
-						<View
-							style={{ flexDirection: "row", alignItems: "baseline", gap: Spacing.xs }}
-						>
-							<Heading size="xl">{monthlyRate}</Heading>
-							<Body size="lg" secondary>
-								%
-							</Body>
-						</View>
-					</View>
-				</Card>
+						}
+					/>
+				</View>
 			</Animated.View>
 
+			{/* ── This Week ────────────────────────────────────── */}
 			<Animated.View entering={FadeInDown.duration(400).delay(300)}>
 				<Card variant="filled" padding="lg">
 					<View style={{ gap: Spacing.lg }}>
-						<View
-							style={{
-								flexDirection: "row",
-								justifyContent: "space-between",
-								alignItems: "center",
-							}}
-						>
-							<Body weight="bold" size="lg">
-								This Week
-							</Body>
-							<Body size="sm" style={{ color: Colors.accent }}>
-								Details
-							</Body>
-						</View>
+						<Body weight="bold" size="lg">
+							This Week
+						</Body>
 						<WeekCircles days={weekSummary} />
 					</View>
 				</Card>
 			</Animated.View>
 
-			<Animated.View entering={FadeInDown.duration(400).delay(400)}>
+			{/* ── Monthly Overview ─────────────────────────────── */}
+			<Animated.View entering={FadeInDown.duration(400).delay(500)}>
 				<Card variant="filled" padding="lg">
 					<View style={{ gap: Spacing.lg }}>
+						{/* Header with month navigator */}
 						<View
 							style={{
 								flexDirection: "row",
@@ -239,62 +337,133 @@ export default function ProgressScreen() {
 									Monthly Overview
 								</Body>
 								<Body size="xs" secondary>
-									Habits completed per day
+									{monthlyRate}% completion rate
 								</Body>
 							</View>
-							<View style={{ flexDirection: "row", gap: Spacing.sm }}>
+
+							{/* Chevron-based month navigator */}
+							<View
+								style={{
+									flexDirection: "row",
+									alignItems: "center",
+									gap: Spacing.sm,
+								}}
+							>
 								<Pressable
-									onPress={() => setSelectedMonth(now.getMonth())}
+									onPress={goToPrevMonth}
+									hitSlop={12}
 									style={{
-										paddingVertical: 4,
-										paddingHorizontal: Spacing.md,
-										borderRadius: Spacing.sm,
-										backgroundColor:
-											selectedMonth === now.getMonth()
-												? Colors.accent
-												: Colors.transparent,
+										padding: Spacing.xs,
 									}}
 								>
-									<Body
-										size="sm"
-										style={{
-											color:
-												selectedMonth === now.getMonth()
-													? Colors.white
-													: Colors.textPrimary,
-										}}
+									<Svg
+										width={18}
+										height={18}
+										viewBox="0 0 24 24"
+										fill="none"
 									>
-										{getShortMonthName(now.getMonth())}
-									</Body>
+										<Path
+											d="M15 18l-6-6 6-6"
+											stroke={Colors.textPrimary}
+											strokeWidth={2}
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										/>
+									</Svg>
 								</Pressable>
+								<Body size="sm" weight="medium" style={{ minWidth: 60, textAlign: "center" }}>
+									{getShortMonthName(selectedMonth)}{" "}
+									{selectedYear !== now.getFullYear()
+										? `'${String(selectedYear).slice(2)}`
+										: ""}
+								</Body>
 								<Pressable
-									onPress={() => setSelectedMonth(prevMonth)}
+									onPress={goToNextMonth}
+									hitSlop={12}
 									style={{
-										paddingVertical: 4,
-										paddingHorizontal: Spacing.md,
-										borderRadius: Spacing.sm,
-										backgroundColor:
-											selectedMonth === prevMonth ? Colors.accent : Colors.transparent,
+										padding: Spacing.xs,
+										opacity: isCurrentMonth ? 0.3 : 1,
 									}}
+									disabled={isCurrentMonth}
 								>
-									<Body
-										size="sm"
-										style={{
-											color:
-												selectedMonth === prevMonth ? Colors.white : Colors.textPrimary,
-										}}
+									<Svg
+										width={18}
+										height={18}
+										viewBox="0 0 24 24"
+										fill="none"
 									>
-										{getShortMonthName(prevMonth)}
-									</Body>
+										<Path
+											d="M9 18l6-6-6-6"
+											stroke={Colors.textPrimary}
+											strokeWidth={2}
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										/>
+									</Svg>
 								</Pressable>
 							</View>
 						</View>
+
 						<ScrollView horizontal showsHorizontalScrollIndicator={false}>
 							<BarChart data={monthlyData} />
 						</ScrollView>
 					</View>
 				</Card>
 			</Animated.View>
+			
+			{/* ── Habit Breakdown ───────────────────────────────── */}
+			{habitBreakdown.length > 0 && (
+				<Animated.View entering={FadeInDown.duration(400).delay(400)}>
+					<Card variant="filled" padding="lg">
+						<View style={{ gap: Spacing.lg }}>
+							<View style={{ gap: Spacing.xs }}>
+								<Body weight="bold" size="lg">
+									Today's Breakdown
+								</Body>
+								<Body size="xs" secondary>
+									Progress for each habit today
+								</Body>
+							</View>
+							{habitBreakdown.map((habit) => (
+								<View key={habit.id} style={{ gap: Spacing.sm }}>
+									<View
+										style={{
+											flexDirection: "row",
+											justifyContent: "space-between",
+											alignItems: "center",
+										}}
+									>
+										<Body
+											size="sm"
+											weight="medium"
+											numberOfLines={1}
+											style={{ flex: 1, marginRight: Spacing.md }}
+										>
+											{habit.title}
+										</Body>
+										<Body
+											size="xs"
+											secondary
+											style={
+												habit.isComplete ? { color: Colors.success } : undefined
+											}
+										>
+											{habit.detail}
+										</Body>
+									</View>
+									<NativeLinearProgress
+										progress={habit.progress}
+										height={6}
+										color={habit.isComplete ? Colors.success : Colors.accent}
+									/>
+								</View>
+							))}
+						</View>
+					</Card>
+				</Animated.View>
+			)}
+
+		
 		</ScrollView>
 	);
 }

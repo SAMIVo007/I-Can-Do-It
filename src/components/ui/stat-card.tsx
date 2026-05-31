@@ -4,7 +4,8 @@
 
 import React from 'react';
 import { View, type ViewStyle } from 'react-native';
-import { Colors, Spacing, Radii } from '@/constants/theme';
+import { Spacing, Radii } from '@/constants/theme';
+import { useAppColors } from '@/hooks/use-app-colors';
 import { Body, DataText } from '@/components/ui/typography';
 
 interface StatCardProps {
@@ -16,6 +17,7 @@ interface StatCardProps {
 }
 
 export function StatCard({ icon, label, value, unit, color }: StatCardProps) {
+  const Colors = useAppColors();
   return (
     <View
       style={{

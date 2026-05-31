@@ -1,13 +1,15 @@
 /**
  * BarChart — Monthly overview bar chart using react-native-svg.
- * Flat, no gradients. Highlighted "today" bar in Slate Blue, rest in Sage Green.
+ * Flat, no gradients. Highlighted "today" bar in accent, rest in success.
+ * Fixed date labels: only shows every 5th day, 1st, last, and today to prevent overflow.
  */
 
 import React from 'react';
 import { View, type ViewStyle } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { Colors, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { useAppColors } from '@/hooks/use-app-colors';
 import { Body } from '@/components/ui/typography';
 import type { MonthlyBar } from '@/types/models';
 
@@ -18,9 +20,22 @@ interface BarChartProps {
 
 const BAR_WIDTH = 8;
 const BAR_GAP = 4;
-const LABEL_INTERVAL = 3;
+
+/** Show label for 1st, every 5th, last, and today — avoids overlap. */
+function shouldShowLabel(index: number, total: number, isToday: boolean): boolean {
+  if (isToday) return true;
+  if (index === 0) return true;
+  if (index === total - 1) return true;
+  if ((index + 1) % 5 === 0) {
+    // Hide day 30 if total is 31, to avoid collision with the last day
+    if (total === 31 && index === 29) return false;
+    return true;
+  }
+  return false;
+}
 
 export function BarChart({ data, height = 120 }: BarChartProps) {
+  const Colors = useAppColors();
   const maxValue = Math.max(...data.map((d) => d.habitsCompleted), 1);
   const chartWidth = data.length * (BAR_WIDTH + BAR_GAP);
 
@@ -47,12 +62,18 @@ export function BarChart({ data, height = 120 }: BarChartProps) {
           })}
         </Svg>
       </View>
-      {/* X-axis labels */}
+      {/* X-axis labels — spaced to prevent overflow */}
       <View style={{ flexDirection: 'row', width: chartWidth, marginTop: Spacing.xs } satisfies ViewStyle}>
         {data.map((bar, i) => (
           <View key={bar.day} style={{ width: BAR_WIDTH + BAR_GAP, alignItems: 'center' }}>
-            {(i % LABEL_INTERVAL === 0 || bar.isToday) && (
-              <Body size="xs" secondary weight={bar.isToday ? 'bold' : 'regular'}>
+            {shouldShowLabel(i, data.length, bar.isToday) && (
+              <Body
+                size="xs"
+                secondary
+                weight={bar.isToday ? 'bold' : 'regular'}
+                numberOfLines={1}
+                style={{ fontSize: 9 }}
+              >
                 {bar.day}
               </Body>
             )}

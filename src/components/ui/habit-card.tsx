@@ -6,6 +6,7 @@
 
 import { CategoryPill } from "@/components/ui/category-pill";
 import { Checkbox } from "@/components/ui/checkbox";
+import { NativeLinearProgress } from "@/components/ui/native-progress";
 import { Body } from "@/components/ui/typography";
 import { Radii, Spacing } from "@/constants/theme";
 import { useAppColors } from "@/hooks/use-app-colors";
@@ -13,7 +14,6 @@ import type { DailyLog, Habit } from "@/types/models";
 import { getProgress, isHabitComplete } from "@/types/models";
 import { SymbolView } from "expo-symbols";
 import { Pressable, View, type ViewStyle } from "react-native";
-import Animated from "react-native-reanimated";
 
 interface HabitCardProps {
 	habit: Habit;
@@ -120,24 +120,12 @@ export function HabitCard({
 
 					{/* Progress bar for quantitative habits */}
 					{habit.type === "quantitative" && (
-						<View
-							style={
-								{
-									height: 4,
-									backgroundColor: Colors.border,
-									borderRadius: 2,
-									overflow: "hidden",
-									marginTop: Spacing.xs,
-								} satisfies ViewStyle
-							}
-						>
-							<Animated.View
-								style={{
-									height: "100%",
-									width: `${Math.min(progress * 100, 100)}%` as `${number}%`,
-									backgroundColor: completed ? Colors.success : Colors.accent,
-									borderRadius: 2,
-								}}
+						<View style={{ marginTop: Spacing.xs, width: '100%' }}>
+							<NativeLinearProgress
+								progress={progress}
+								height={4}
+								color={completed ? Colors.success : Colors.accent}
+								trackColor={Colors.border}
 							/>
 						</View>
 					)}
