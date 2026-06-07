@@ -33,6 +33,7 @@ import {
 	toDateKey,
 } from "@/utils/date";
 import * as Haptics from "expo-haptics";
+import { triggerHaptic } from "@/utils/haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
@@ -198,14 +199,14 @@ export default function GoalDetailScreen() {
 
 	const handleToggle = async (habitId: string) => {
 		if (process.env.EXPO_OS === "ios") {
-			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+			triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
 		}
 		await toggleHabit(habitId, today);
 	};
 
 	const handleIncrement = async (habitId: string, amount: number) => {
 		if (process.env.EXPO_OS === "ios") {
-			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+			triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
 		}
 		const log = getLogForHabit(habitId);
 		await updateProgress(habitId, today, (log?.value ?? 0) + amount);
@@ -273,7 +274,7 @@ export default function GoalDetailScreen() {
 				</GoalMenu>
 			</View>
 
-			<ScrollView
+			<Animated.ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerStyle={{
 					padding: Spacing.xl,
@@ -493,7 +494,7 @@ export default function GoalDetailScreen() {
 						</View>
 					)}
 				</Animated.View>
-			</ScrollView>
+			</Animated.ScrollView>
 		</View>
 	);
 }

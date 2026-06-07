@@ -22,7 +22,7 @@ import { DefaultTheme, ThemeProvider } from "expo-router";
 import { Stack } from "expo-router/stack";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect } from "react";
-import { useColorScheme } from "react-native";
+import { useColorScheme, Appearance } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
 SplashScreen.preventAutoHideAsync();
@@ -60,10 +60,19 @@ export default function RootLayout() {
 	// Routing between onboarding and the main app is handled declaratively
 	// via <Stack.Protected> guards below — no imperative redirect needed.
 	const [hasOnboarded] = useStorage("hasOnboarded", false);
+	const [appTheme] = useStorage<"system" | "light" | "dark">("appTheme", "system");
 
 	useEffect(() => {
 		hydrate();
 	}, [hydrate]);
+
+	useEffect(() => {
+		if (appTheme === "system") {
+			Appearance.setColorScheme("unspecified");
+		} else {
+			Appearance.setColorScheme(appTheme);
+		}
+	}, [appTheme]);
 
 	const onLayoutReady = useCallback(async () => {
 		if (fontsLoaded && isHydrated) {

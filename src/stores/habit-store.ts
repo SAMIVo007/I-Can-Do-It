@@ -100,6 +100,7 @@ interface HabitState {
     target?: number;
     unit?: string;
     incrementValue?: number;
+    reminderTimes?: string[];
   }) => Promise<Habit>;
   updateHabit: (id: string, updates: Partial<Habit>) => Promise<void>;
   deleteHabit: (id: string) => Promise<void>;
@@ -137,12 +138,13 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       'SELECT * FROM daily_logs ORDER BY date DESC LIMIT 1000'
     );
 
-    // Convert SQLite integers to booleans
-    const parsedHabits = habits.map((h) => ({
+    // Convert SQLite integers to booleans and parse JSON arrays
+    const parsedHabits = habits.map((h: any) => ({
       ...h,
       isActive: Boolean(h.isActive),
       reminderEnabled: Boolean(h.reminderEnabled),
-    }));
+      reminderTimes: h.reminderTime ? JSON.parse(h.reminderTime) : [],
+    })) as Habit[];
 
     set({ goals, habits: parsedHabits, logs, isHydrated: true });
   },
@@ -236,11 +238,12 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       createdAt: new Date().toISOString(),
       sortOrder: state.habits.length,
       reminderEnabled: false,
+      reminderTimes: params.reminderTimes ?? [],
     };
     await database.runAsync(
-      `INSERT INTO habits (id, goalId, title, description, category, type, target, unit, incrementValue, isActive, createdAt, sortOrder, reminderEnabled)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [habit.id, habit.goalId, habit.title, habit.description ?? null, habit.category, habit.type, habit.target ?? null, habit.unit ?? null, habit.incrementValue ?? 1, 1, habit.createdAt, habit.sortOrder, 0]
+      `INSERT INTO habits (id, goalId, title, description, category, type, target, unit, incrementValue, isActive, createdAt, sortOrder, reminderEnabled, reminderTime)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [habit.id, habit.goalId, habit.title, habit.description ?? null, habit.category, habit.type, habit.target ?? null, habit.unit ?? null, habit.incrementValue ?? 1, 1, habit.createdAt, habit.sortOrder, 0, JSON.stringify(habit.reminderTimes)]
     );
     set((s) => ({ habits: [...s.habits, habit] }));
     return habit;
@@ -253,13 +256,19 @@ export const useHabitStore = create<HabitState>((set, get) => ({
 
     for (const [key, value] of Object.entries(updates)) {
       if (key === 'id') continue;
-      const dbKey = key === 'isActive' || key === 'reminderEnabled' ? key : key;
-      setClauses.push(`${dbKey} = ?`);
-      if (key === 'isActive' || key === 'reminderEnabled') {
-        values.push(value ? 1 : 0);
-      } else {
-        values.push(value as string | number | null);
+      
+      let dbKey = key;
+      let dbValue: any = value;
+      
+      if (key === 'reminderTimes') {
+        dbKey = 'reminderTime';
+        dbValue = value ? JSON.stringify(value) : null;
+      } else if (key === 'isActive' || key === 'reminderEnabled') {
+        dbValue = value ? 1 : 0;
       }
+      
+      setClauses.push(`${dbKey} = ?`);
+      values.push(dbValue);
     }
     values.push(id);
 

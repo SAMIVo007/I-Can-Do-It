@@ -51,7 +51,7 @@ export interface Habit {
   sortOrder: number;
   /** Notification scheduling */
   reminderEnabled: boolean;
-  reminderTime?: string; // "HH:mm" format, e.g. "08:00"
+  reminderTimes?: string[]; // Array of "HH:mm" strings, e.g. ["08:00", "20:00"]
 }
 
 /** One log entry per habit per day */

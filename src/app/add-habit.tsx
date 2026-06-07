@@ -2,6 +2,7 @@
  * Add Habit — modal screen for creating a new habit.
  */
 
+import { GOAL_COLORS } from "@/app/add-goal";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { NativeBottomSheet } from "@/components/ui/native-bottom-sheet";
@@ -12,16 +13,16 @@ import { Radii, Spacing } from "@/constants/theme";
 import { useAppColors } from "@/hooks/use-app-colors";
 import { useHabitStore } from "@/stores/habit-store";
 import type { HabitCategory, HabitType } from "@/types/models";
+import { TimePicker } from "@/components/ui/time-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
 	Pressable,
-	ScrollView,
 	TextInput as RNTextInput,
+	ScrollView,
 	View,
 	type ViewStyle
 } from "react-native";
-import { GOAL_COLORS } from "@/app/add-goal";
 
 export default function AddHabitScreen() {
 	const Colors = useAppColors();
@@ -45,6 +46,9 @@ export default function AddHabitScreen() {
 	const [unit, setUnit] = useState(editHabit?.unit || "");
 	const [incrementValue, setIncrementValue] = useState(editHabit?.incrementValue ? String(editHabit.incrementValue) : "1");
 
+	const [reminderTimes, setReminderTimes] = useState<string[]>(editHabit?.reminderTimes ?? []);
+	const [showPicker, setShowPicker] = useState(false);
+	const [pickerDate, setPickerDate] = useState(new Date());
 
 	const [isOpen, setIsOpen] = useState(true);
 	const [noGoalVisible, setNoGoalVisible] = useState(false);
@@ -112,6 +116,7 @@ export default function AddHabitScreen() {
 				unit: habitType === "quantitative" ? unit || undefined : undefined,
 				incrementValue:
 					habitType === "quantitative" ? Number(incrementValue) || 1 : undefined,
+				reminderTimes,
 			});
 		} else {
 			if (!selectedGoalId) {
@@ -128,6 +133,7 @@ export default function AddHabitScreen() {
 				unit: habitType === "quantitative" ? unit || undefined : undefined,
 				incrementValue:
 					habitType === "quantitative" ? Number(incrementValue) || 1 : undefined,
+				reminderTimes,
 			});
 		}
 		setIsOpen(false);
@@ -407,6 +413,98 @@ export default function AddHabitScreen() {
 						</View>
 					)}
 
+					{/* Reminders */}
+					<View style={{ gap: Spacing.md }}>
+						<Body
+							size="xs"
+							weight="medium"
+							style={{
+								textTransform: "uppercase",
+								letterSpacing: 1,
+								color: Colors.textSecondary,
+							}}
+						>
+							Reminders
+						</Body>
+
+						{reminderTimes.length > 0 && (
+							<View style={{ flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm }}>
+								{reminderTimes.map((timeStr) => (
+									<View
+										key={timeStr}
+										style={{
+											flexDirection: "row",
+											alignItems: "center",
+											gap: Spacing.xs,
+											backgroundColor: Colors.accent + "1A",
+											borderColor: Colors.accent + "40",
+											borderWidth: 1,
+											paddingVertical: Spacing.xs,
+											paddingHorizontal: Spacing.sm,
+											borderRadius: Radii.md,
+										}}
+									>
+										<Body style={{ color: Colors.accent }} weight="medium">
+											{timeStr}
+										</Body>
+										<Pressable
+											onPress={() => setReminderTimes(reminderTimes.filter((t) => t !== timeStr))}
+											hitSlop={10}
+										>
+											<Body style={{ color: Colors.danger, marginLeft: 4 }}>✕</Body>
+										</Pressable>
+									</View>
+								))}
+							</View>
+						)}
+
+						<Button
+							title="+ Add Reminder Time"
+							variant="outlined"
+							onPress={() => {
+								setPickerDate(new Date());
+								setShowPicker(true);
+							}}
+						/>
+
+						{showPicker && (
+							<View style={{ alignItems: "center", paddingVertical: Spacing.md, gap: Spacing.md }}>
+								<TimePicker
+									value={pickerDate}
+									variant={process.env.EXPO_OS === "ios" ? "inline" : "dialog"}
+									onTimeSelected={(date) => {
+										setTimeout(() => {
+											const hh = String(date.getHours()).padStart(2, "0");
+											const mm = String(date.getMinutes()).padStart(2, "0");
+											const timeStr = `${hh}:${mm}`;
+											if (!reminderTimes.includes(timeStr)) {
+												setReminderTimes((prev) => [...prev, timeStr].sort());
+											}
+											if (process.env.EXPO_OS !== "ios") {
+												setShowPicker(false);
+											}
+										}, 0);
+									}}
+									onDismiss={() => setTimeout(() => setShowPicker(false), 0)}
+								/>
+								{process.env.EXPO_OS === "ios" && (
+									<Button
+										title="Save Time"
+										onPress={() => {
+											const hh = String(pickerDate.getHours()).padStart(2, "0");
+											const mm = String(pickerDate.getMinutes()).padStart(2, "0");
+											const timeStr = `${hh}:${mm}`;
+											if (!reminderTimes.includes(timeStr)) {
+												setReminderTimes([...reminderTimes, timeStr].sort());
+											}
+											setShowPicker(false);
+										}}
+									/>
+								)}
+							</View>
+						)}
+					</View>
+
 					<Button
 						title={editHabit ? "Save Changes" : "Create Habit"}
 						onPress={handleSave}
@@ -421,7 +519,7 @@ export default function AddHabitScreen() {
 				title="No Goal Yet"
 				message="Create a goal first, then add habits to it."
 				confirmLabel="OK"
-				onConfirm={() => {}}
+				onConfirm={() => { }}
 				onDismiss={() => setNoGoalVisible(false)}
 			/>
 		</View>

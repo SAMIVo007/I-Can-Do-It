@@ -2,31 +2,36 @@
  * Settings screen — user preferences, notifications, data management.
  */
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { TextInput } from "@/components/ui/text-input";
 import { Body, Heading } from "@/components/ui/typography";
 import { useAppColors } from "@/hooks/use-app-colors";
-import { Spacing } from "@/constants/theme";
+import { Fonts, Spacing } from "@/constants/theme";
 import { useStorage } from "@/hooks/use-storage";
 import {
 	cancelAllReminders,
 	requestNotificationPermissions,
 } from "@/utils/notifications";
 import React, { useState } from "react";
-import { Switch, View } from "react-native";
+import { View, TextInput as RNTextInput } from "react-native";
+import { Switch as ExpoSwitch, Host } from "@expo/ui";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
+// New UI Components
+import { SettingsGroup, SettingsRow, SettingsChevron } from "@/components/ui/settings-list";
+import { ProBanner } from "@/components/ui/pro-banner";
+
 export default function SettingsScreen() {
 	const Colors = useAppColors();
+	
+	// State
 	const [userName, setUserName] = useStorage("userName", "");
-	const [remindersEnabled, setRemindersEnabled] = useStorage(
-		"remindersEnabled",
-		false,
-	);
-
+	const [remindersEnabled, setRemindersEnabled] = useStorage("remindersEnabled", false);
+	const [hapticsEnabled, setHapticsEnabled] = useStorage("hapticsEnabled", true);
+	
+	const [appTheme, setAppTheme] = useStorage<"system" | "light" | "dark">("appTheme", "system");
+	
+	// Dialogs
 	const [permDialogVisible, setPermDialogVisible] = useState(false);
 	const [resetDialogVisible, setResetDialogVisible] = useState(false);
 
@@ -43,132 +48,138 @@ export default function SettingsScreen() {
 		setRemindersEnabled(value);
 	};
 
+	const handleThemeCycle = () => {
+		const themes: ("system" | "light" | "dark")[] = ["system", "light", "dark"];
+		const nextIndex = (themes.indexOf(appTheme) + 1) % themes.length;
+		setAppTheme(themes[nextIndex]);
+	};
+
 	return (
 		<KeyboardAwareScrollView
 			contentInsetAdjustmentBehavior="automatic"
+			showsVerticalScrollIndicator={false}
 			contentContainerStyle={{
 				padding: Spacing.xl,
 				paddingBottom: Spacing.xxxl * 2,
 				paddingTop: Spacing.xxxl,
-				gap: Spacing.xl,
+				gap: Spacing.xxl, // Larger gap between distinct groups
 			}}
 			style={{ backgroundColor: Colors.background }}
 		>
 			{/* Header */}
 			<Animated.View entering={FadeInDown.duration(400)}>
-				<Heading size="xl">Settings</Heading>
-				<Body secondary style={{ marginTop: Spacing.xs }}>
-					Manage your preferences and data.
-				</Body>
+				<Heading size="xl" style={{ textAlign: "center", marginBottom: Spacing.sm }}>Settings</Heading>
 			</Animated.View>
+
+			{/* PRO Banner */}
+			{/* <Animated.View entering={FadeInDown.duration(400).delay(100)}>
+				<ProBanner />
+			</Animated.View> */}
 
 			{/* Profile Section */}
-			<Animated.View entering={FadeInDown.duration(400).delay(100)}>
-				<Card variant="filled" padding="lg">
-					<View style={{ gap: Spacing.lg }}>
-						<Body
-							weight="bold"
-							size="sm"
-							style={{
-								textTransform: "uppercase",
-								letterSpacing: 1,
-								color: Colors.textSecondary,
-							}}
-						>
-							Profile
-						</Body>
-						<TextInput
-							label="Your Name"
-							value={userName}
-							onChangeText={setUserName}
-							placeholder="Enter your name"
-						/>
-					</View>
-				</Card>
-			</Animated.View>
-
-			{/* Notifications Section */}
-			<Animated.View entering={FadeInDown.duration(400).delay(100)}>
-				<Card variant="filled" padding="lg">
-					<View style={{ gap: Spacing.lg }}>
-						<Body
-							weight="bold"
-							size="sm"
-							style={{
-								textTransform: "uppercase",
-								letterSpacing: 1,
-								color: Colors.textSecondary,
-							}}
-						>
-							Notifications
-						</Body>
-						<View
-							style={{
-								flexDirection: "row",
-								justifyContent: "space-between",
-								alignItems: "center",
-							}}
-						>
-							<View style={{ flex: 1 }}>
-								<Body weight="medium">Habit Reminders</Body>
-								<Body size="sm" secondary>
-									Get daily reminders for your habits
-								</Body>
-							</View>
-							<Switch
-								value={remindersEnabled}
-								onValueChange={handleToggleReminders}
-								trackColor={{ false: Colors.border, true: Colors.success }}
-								thumbColor={Colors.white}
+			<Animated.View entering={FadeInDown.duration(400).delay(150)}>
+				<SettingsGroup label="Profile">
+					<SettingsRow
+						label="Your Name"
+						icon={{ ios: "person", android: "person", web: "person" }}
+						trailing={
+							<RNTextInput
+								value={userName}
+								onChangeText={setUserName}
+								placeholder="Enter your name"
+								placeholderTextColor={Colors.textSecondary}
+								style={{
+									fontFamily: Fonts.utilityMedium,
+									fontSize: 16,
+									color: Colors.textSecondary,
+									textAlign: "right",
+									minWidth: 120,
+								}}
 							/>
-						</View>
-					</View>
-				</Card>
+						}
+					/>
+				</SettingsGroup>
 			</Animated.View>
 
-			{/* About Section */}
+			{/* App Settings Section */}
 			<Animated.View entering={FadeInDown.duration(400).delay(200)}>
-				<Card variant="filled" padding="lg">
-					<View style={{ gap: Spacing.md }}>
-						<Body
-							weight="bold"
-							size="sm"
-							style={{
-								textTransform: "uppercase",
-								letterSpacing: 1,
-								color: Colors.textSecondary,
-							}}
-						>
-							About
-						</Body>
-						<SettingsRow label="Version" value="1.0.0" />
-						<SettingsRow label="Built with" value="Expo + React Native" />
-					</View>
-				</Card>
+				<SettingsGroup label="App Settings">
+					<SettingsRow
+						label="Theme"
+						icon={{ ios: "moon", android: "dark_mode", web: "dark_mode" }}
+						onPress={handleThemeCycle}
+						trailing={
+							<View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.xs }}>
+								<Body secondary style={{ textTransform: "capitalize" }}>{appTheme}</Body>
+								<SettingsChevron />
+							</View>
+						}
+					/>
+					{/* <SettingsRow
+						label="Font Style"
+						icon={{ ios: "textformat", android: "title", web: "title" }}
+						onPress={() => {}} // Mock
+						trailing={
+							<View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.xs }}>
+								<Body secondary>Newsreader</Body>
+								<SettingsChevron />
+							</View>
+						}
+					/> */}
+					<SettingsRow
+						label="Haptic Feedback"
+						icon={{ ios: "hand.tap", android: "touch_app", web: "touch_app" }}
+						trailing={
+							<Host matchContents>
+								<ExpoSwitch
+									value={hapticsEnabled}
+									onValueChange={setHapticsEnabled}
+								/>
+							</Host>
+						}
+					/>
+					<SettingsRow
+						label="Habit Reminders"
+						icon={{ ios: "bell", android: "notifications", web: "notifications" }}
+						trailing={
+							<Host matchContents>
+								<ExpoSwitch
+									value={remindersEnabled}
+									onValueChange={handleToggleReminders}
+								/>
+							</Host>
+						}
+					/>
+					<SettingsRow
+						label="Language"
+						icon={{ ios: "globe", android: "language", web: "language" }}
+						onPress={() => {}} // Mock
+						trailing={
+							<View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.xs }}>
+								<Body secondary>English</Body>
+								<SettingsChevron />
+							</View>
+						}
+					/>
+				</SettingsGroup>
 			</Animated.View>
 
-			{/* Danger Zone */}
-			<Animated.View entering={FadeInDown.duration(400).delay(300)}>
-				<Card variant="bordered" padding="lg">
-					<View style={{ gap: Spacing.lg }}>
-						<Body
-							weight="bold"
-							size="sm"
-							style={{
-								textTransform: "uppercase",
-								letterSpacing: 1,
-								color: Colors.danger,
-							}}
-						>
-							Danger Zone
-						</Body>
-						<Button
-							title="Reset All Data"
-							variant="outlined"
-							onPress={() => setResetDialogVisible(true)}
-						/>
-					</View>
-				</Card>
+			{/* More Section */}
+			<Animated.View entering={FadeInDown.duration(400).delay(250)}>
+				<SettingsGroup label="More">
+					<SettingsRow
+						label="Send Feedback"
+						icon={{ ios: "paperplane", android: "send", web: "send" }}
+						onPress={() => {}} // Mock
+						trailing={<SettingsChevron />}
+					/>
+					<SettingsRow
+						label="Reset All Data"
+						icon={{ ios: "trash", android: "delete", web: "delete" }}
+						destructive
+						onPress={() => setResetDialogVisible(true)}
+					/>
+				</SettingsGroup>
 			</Animated.View>
 
 			{/* Notice: notification permission denied */}
@@ -193,21 +204,5 @@ export default function SettingsScreen() {
 				onDismiss={() => setResetDialogVisible(false)}
 			/>
 		</KeyboardAwareScrollView>
-	);
-}
-
-function SettingsRow({ label, value }: { label: string; value: string }) {
-	return (
-		<View
-			style={{
-				flexDirection: "row",
-				justifyContent: "space-between",
-				alignItems: "center",
-				paddingVertical: Spacing.xs,
-			}}
-		>
-			<Body>{label}</Body>
-			<Body secondary>{value}</Body>
-		</View>
 	);
 }

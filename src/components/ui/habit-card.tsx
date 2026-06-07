@@ -48,6 +48,7 @@ export function HabitCard({
 				onPress={onPress}
 				onLongPress={onLongPress}
 				unstable_pressDelay={100}
+				delayPressIn={150}
 				style={({ pressed }) => [
 					{
 						flexDirection: "row",

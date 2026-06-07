@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CategoryPill } from "@/components/ui/category-pill";
 import { HabitMenu } from "@/components/ui/habit-menu";
-import { ProgressRing } from "@/components/ui/progress-ring";
+import { NativeCircularProgress } from "@/components/ui/native-progress";
 import { TextInput } from "@/components/ui/text-input";
 import { Body, Heading } from "@/components/ui/typography";
 import { Spacing } from "@/constants/theme";
@@ -15,6 +15,7 @@ import { useHabitStore } from "@/stores/habit-store";
 import { getProgress, isHabitComplete } from "@/types/models";
 import { toDateKey } from "@/utils/date";
 import * as Haptics from "expo-haptics";
+import { triggerHaptic } from "@/utils/haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
@@ -60,7 +61,7 @@ export default function HabitDetailScreen() {
 		const value = Number(progressInput);
 		if (!isNaN(value) && value >= 0) {
 			if (process.env.EXPO_OS === "ios") {
-				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+				triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
 			}
 			await updateProgress(habit.id, today, value);
 			setProgressInput("");
@@ -123,13 +124,13 @@ export default function HabitDetailScreen() {
 					entering={FadeInDown.duration(400).delay(200)}
 					style={{ alignItems: "center", gap: Spacing.lg }}
 				>
-					<ProgressRing
+					<NativeCircularProgress
 						progress={progress}
 						size={120}
 						strokeWidth={8}
 						color={completed ? Colors.success : Colors.accent}
-						labelSize="lg"
-					/>
+						labelSize="lg" />
+
 					<Heading size="lg">{habit.title}</Heading>
 					<CategoryPill label={parentGoal?.focusArea ?? habit.category} />
 				</Animated.View>

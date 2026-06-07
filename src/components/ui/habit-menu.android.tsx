@@ -11,6 +11,7 @@ import {
 } from "@expo/ui/jetpack-compose";
 import { padding } from "@expo/ui/jetpack-compose/modifiers";
 import * as Haptics from "expo-haptics";
+import { triggerHaptic } from "@/utils/haptics";
 import { router } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import React, { useState } from "react";
@@ -48,7 +49,7 @@ export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
 					hitSlop={20}
 					android_ripple={{ borderless: true, color: Colors.border, radius: 20, foreground: true }}
 					onPress={() => {
-						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+						triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
 						setExpanded(true);
 					}}
 				>
@@ -58,7 +59,7 @@ export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
 				React.cloneElement(children as React.ReactElement<any>, {
 					onPress: () => router.push(`/habit/${habitId}` as any),
 					onLongPress: () => {
-						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+						triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
 						setExpanded(true);
 					},
 				})

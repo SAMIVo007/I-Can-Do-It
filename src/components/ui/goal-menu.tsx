@@ -2,6 +2,7 @@ import React, { isValidElement, cloneElement, useState } from 'react';
 import { ActionSheetIOS, Platform, Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { triggerHaptic } from '@/utils/haptics';
 import { useHabitStore } from '@/stores/habit-store';
 import { ConfirmDialog } from './confirm-dialog';
 
@@ -48,7 +49,7 @@ export function GoalMenu({ goalId, children, isIcon }: GoalMenuProps) {
   };
 
   const triggerOptions = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
     showOptions();
   };
 

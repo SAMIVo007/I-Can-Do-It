@@ -17,6 +17,7 @@ import { useToday } from "@/hooks/use-today";
 import { useHabitStore } from "@/stores/habit-store";
 import { toDateKey } from "@/utils/date";
 import * as Haptics from "expo-haptics";
+import { triggerHaptic } from "@/utils/haptics";
 import { router } from "expo-router";
 import React from "react";
 import { Pressable, ScrollView, View, ViewStyle } from "react-native";
@@ -88,14 +89,14 @@ export default function TodayScreen() {
 
 	const handleToggle = async (habitId: string) => {
 		if (process.env.EXPO_OS === "ios") {
-			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+			triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
 		}
 		await toggleHabit(habitId, today);
 	};
 
 	const handleIncrement = async (habitId: string, amount: number) => {
 		if (process.env.EXPO_OS === "ios") {
-			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+			triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
 		}
 		const log = getLogForHabit(habitId);
 		const currentValue = log?.value ?? 0;

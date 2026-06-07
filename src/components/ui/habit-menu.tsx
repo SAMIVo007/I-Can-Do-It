@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { triggerHaptic } from '@/utils/haptics';
 import { useHabitStore } from '@/stores/habit-store';
 import { ConfirmDialog } from './confirm-dialog';
 
@@ -23,7 +24,7 @@ export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
   };
 
   const openMenu = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
     setDialogVisible(true);
   };
 

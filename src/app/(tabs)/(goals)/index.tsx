@@ -13,6 +13,7 @@ import { ProgressRing } from "@/components/ui/progress-ring";
 import { Body, Heading } from "@/components/ui/typography";
 import { Radii, Spacing } from "@/constants/theme";
 import { useAppColors } from "@/hooks/use-app-colors";
+import { GoalMenu } from "@/components/ui/goal-menu";
 import { useHabitStore } from "@/stores/habit-store";
 import { isHabitComplete } from "@/types/models";
 import { toDateKey } from "@/utils/date";
@@ -127,13 +128,14 @@ export default function GoalsScreen() {
 								layout={LinearTransition.springify()}
 							>
 								<View style={{ borderRadius: Radii.lg, overflow: "hidden" }}>
-									<Pressable
-										onPress={() => router.push(`/goal/${goal.id}` as any)}
-										android_ripple={{ color: goalColor + "22", foreground: true }}
-										style={({ pressed }) => ({
-											opacity: pressed ? 0.95 : 1,
-										})}
-									>
+									<GoalMenu goalId={goal.id}>
+										<Pressable
+											onPress={() => router.push(`/goal/${goal.id}` as any)}
+											android_ripple={{ color: goalColor + "22", foreground: true }}
+											style={({ pressed }) => ({
+												opacity: pressed ? 0.95 : 1,
+											})}
+										>
 										<Card
 											variant="filled"
 											padding="lg"
@@ -258,6 +260,7 @@ export default function GoalsScreen() {
 											</View>
 										</Card>
 									</Pressable>
+									</GoalMenu>
 								</View>
 							</Animated.View>
 						);
