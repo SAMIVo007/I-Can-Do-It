@@ -33,46 +33,54 @@ export function GoalMenu({ goalId, children, isIcon }: GoalMenuProps) {
 
 	const handleCascade = async () => {
 		await deleteGoal(goalId, "cascade");
-		router.back();
+		if (router.canGoBack()) {
+			router.back();
+		}
 	};
 	const handleMove = async () => {
 		await deleteGoal(goalId, "reassign");
-		router.back();
+		if (router.canGoBack()) {
+			router.back();
+		}
 	};
 
 	return (
 		<>
-		<Host matchContents>
-			<DropdownMenu
-				expanded={expanded}
-				onDismissRequest={() => setExpanded(false)}
-			>
-				<DropdownMenu.Trigger>
-					<RNHostView matchContents>
-						{isIcon ? (
-							<Pressable
-								hitSlop={20}
-								android_ripple={{ borderless: true, color: Colors.border, radius: 20, foreground: true }}
-								onPress={() => {
-									Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-									setExpanded(true);
-								}}
-							>
-								{children}
-							</Pressable>
-						) : isValidElement(children) ? (
-							cloneElement(children as React.ReactElement<any>, {
-								onPress: () => router.push(`/goal/${goalId}` as any),
-								onLongPress: () => {
-									Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-									setExpanded(true);
-								},
-							})
-						) : (
-							<View>{children}</View>
-						)}
-					</RNHostView>
-				</DropdownMenu.Trigger>
+		<View>
+			{/* RN Content handles its own touches without Compose interference */}
+			{isIcon ? (
+				<Pressable
+					hitSlop={20}
+					android_ripple={{ borderless: true, color: Colors.border, radius: 20, foreground: true }}
+					onPress={() => {
+						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+						setExpanded(true);
+					}}
+				>
+					{children}
+				</Pressable>
+			) : isValidElement(children) ? (
+				cloneElement(children as React.ReactElement<any>, {
+					onPress: () => router.push(`/goal/${goalId}` as any),
+					onLongPress: () => {
+						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+						setExpanded(true);
+					},
+				})
+			) : (
+				<View>{children}</View>
+			)}
+
+			{/* Compose Menu anchored to a tiny invisible view */}
+			<View style={{ position: "absolute", top: 20, right: 20, width: 1, height: 1 }} pointerEvents="none">
+				<Host matchContents>
+					<DropdownMenu
+						expanded={expanded}
+						onDismissRequest={() => setExpanded(false)}
+					>
+						<DropdownMenu.Trigger>
+							<AndroidText></AndroidText>
+						</DropdownMenu.Trigger>
 
 				<DropdownMenu.Items>
 					<DropdownMenuItem
@@ -126,7 +134,9 @@ export function GoalMenu({ goalId, children, isIcon }: GoalMenuProps) {
 					</DropdownMenuItem>
 				</DropdownMenu.Items>
 			</DropdownMenu>
-		</Host>
+				</Host>
+			</View>
+		</View>
 
 		<ConfirmDialog
 			visible={dialogVisible}

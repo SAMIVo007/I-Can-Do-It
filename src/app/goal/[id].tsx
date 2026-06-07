@@ -260,7 +260,7 @@ export default function GoalDetailScreen() {
 				</Pressable>
 
 				<Body style={{ flex: 1, textAlign: "left", paddingHorizontal: 16, fontSize: 20, fontWeight: "medium" }}>
-					Goal
+					Goal Details
 				</Body>
 
 				<GoalMenu goalId={goal.id} isIcon>

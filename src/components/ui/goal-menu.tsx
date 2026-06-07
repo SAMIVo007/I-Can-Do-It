@@ -21,11 +21,15 @@ export function GoalMenu({ goalId, children, isIcon }: GoalMenuProps) {
 
   const handleCascade = async () => {
     await deleteGoal(goalId, 'cascade');
-    router.back();
+    if (router.canGoBack()) {
+      router.back();
+    }
   };
   const handleMove = async () => {
     await deleteGoal(goalId, 'reassign');
-    router.back();
+    if (router.canGoBack()) {
+      router.back();
+    }
   };
 
   const showOptions = () => {

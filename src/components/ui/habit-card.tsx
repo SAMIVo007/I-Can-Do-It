@@ -47,6 +47,7 @@ export function HabitCard({
 			<Pressable
 				onPress={onPress}
 				onLongPress={onLongPress}
+				unstable_pressDelay={100}
 				style={({ pressed }) => [
 					{
 						flexDirection: "row",
@@ -71,6 +72,7 @@ export function HabitCard({
 				) : (
 					<Pressable
 						onPress={() => onIncrement?.(habit.incrementValue || 1)}
+						unstable_pressDelay={100}
 						style={({ pressed }) => ({
 							minWidth: 30,
 							height: 30,
