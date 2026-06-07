@@ -6,14 +6,15 @@ import {
 	DropdownMenu,
 	DropdownMenuItem,
 	Host,
+	RNHostView,
 	TextButton
 } from "@expo/ui/jetpack-compose";
 import { padding } from "@expo/ui/jetpack-compose/modifiers";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import React, { cloneElement, isValidElement, useState } from "react";
-import { Pressable } from "react-native";
+import React, { useState } from "react";
+import { Pressable, View } from "react-native";
 import { Body } from "./typography";
 
 export interface HabitMenuProps {
@@ -30,7 +31,9 @@ export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
 	const confirmDelete = () => {
 		deleteHabit(habitId);
 		setDeleteAlertVisible(false);
-		router.back();
+		if (router.canGoBack()) {
+			router.back();
+		}
 	};
 
 	const handleDelete = () => {
@@ -38,35 +41,41 @@ export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
 	};
 
 	return (
-		<Host matchContents>
-			<DropdownMenu
-				expanded={expanded}
-				onDismissRequest={() => setExpanded(false)}
-			>
-				<DropdownMenu.Trigger>
-					{isIcon ? (
-						<Pressable
-							hitSlop={20}
-							android_ripple={{ borderless: true, color: Colors.border, radius: 20, foreground: true }}
-							onPress={() => {
-								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-								setExpanded(true);
-							}}
-						>
-							{children}
-						</Pressable>
-					) : isValidElement(children) ? (
-						cloneElement(children as React.ReactElement<any>, {
-							onPress: () => router.push(`/habit/${habitId}` as any),
-							onLongPress: () => {
-								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-								setExpanded(true);
-							},
-						})
-					) : (
-						<>{children}</>
-					)}
-				</DropdownMenu.Trigger>
+		<View>
+			{/* RN Content handles its own touches without Compose interference */}
+			{isIcon ? (
+				<Pressable
+					hitSlop={20}
+					android_ripple={{ borderless: true, color: Colors.border, radius: 20, foreground: true }}
+					onPress={() => {
+						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+						setExpanded(true);
+					}}
+				>
+					{children}
+				</Pressable>
+			) : React.isValidElement(children) ? (
+				React.cloneElement(children as React.ReactElement<any>, {
+					onPress: () => router.push(`/habit/${habitId}` as any),
+					onLongPress: () => {
+						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+						setExpanded(true);
+					},
+				})
+			) : (
+				<View>{children}</View>
+			)}
+
+			{/* Compose Menu anchored to a tiny invisible view */}
+			<View style={{ position: "absolute", top: 20, right: 20, width: 1, height: 1 }} pointerEvents="none">
+				<Host matchContents>
+					<DropdownMenu
+						expanded={expanded}
+						onDismissRequest={() => setExpanded(false)}
+					>
+						<DropdownMenu.Trigger>
+							<AndroidText></AndroidText>
+						</DropdownMenu.Trigger>
 
 				<DropdownMenu.Items>
 					<DropdownMenuItem
@@ -148,5 +157,7 @@ export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
 				</AlertDialog>
 			)}
 		</Host>
+			</View>
+		</View>
 	);
 }

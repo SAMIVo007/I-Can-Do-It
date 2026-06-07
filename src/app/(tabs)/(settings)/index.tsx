@@ -4,6 +4,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { TextInput } from "@/components/ui/text-input";
 import { Body, Heading } from "@/components/ui/typography";
 import { useAppColors } from "@/hooks/use-app-colors";
@@ -13,8 +14,8 @@ import {
 	cancelAllReminders,
 	requestNotificationPermissions,
 } from "@/utils/notifications";
-import React from "react";
-import { Alert, Switch, View } from "react-native";
+import React, { useState } from "react";
+import { Switch, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
@@ -26,14 +27,14 @@ export default function SettingsScreen() {
 		false,
 	);
 
+	const [permDialogVisible, setPermDialogVisible] = useState(false);
+	const [resetDialogVisible, setResetDialogVisible] = useState(false);
+
 	const handleToggleReminders = async (value: boolean) => {
 		if (value) {
 			const granted = await requestNotificationPermissions();
 			if (!granted) {
-				Alert.alert(
-					"Permissions Required",
-					"Please enable notifications in your device settings to receive habit reminders.",
-				);
+				setPermDialogVisible(true);
 				return;
 			}
 		} else {
@@ -164,20 +165,33 @@ export default function SettingsScreen() {
 						<Button
 							title="Reset All Data"
 							variant="outlined"
-							onPress={() => {
-								Alert.alert(
-									"Reset All Data",
-									"This will permanently delete all your goals, habits, and progress. Are you sure?",
-									[
-										{ text: "Cancel", style: "cancel" },
-										{ text: "Delete", style: "destructive", onPress: () => {} },
-									],
-								);
-							}}
+							onPress={() => setResetDialogVisible(true)}
 						/>
 					</View>
 				</Card>
 			</Animated.View>
+
+			{/* Notice: notification permission denied */}
+			<ConfirmDialog
+				visible={permDialogVisible}
+				title="Permissions Required"
+				message="Please enable notifications in your device settings to receive habit reminders."
+				confirmLabel="OK"
+				onConfirm={() => {}}
+				onDismiss={() => setPermDialogVisible(false)}
+			/>
+
+			{/* Confirm: reset all data */}
+			<ConfirmDialog
+				visible={resetDialogVisible}
+				title="Reset All Data"
+				message="This will permanently delete all your goals, habits, and progress. Are you sure?"
+				confirmLabel="Delete"
+				confirmDestructive
+				onConfirm={() => {}}
+				cancelLabel="Cancel"
+				onDismiss={() => setResetDialogVisible(false)}
+			/>
 		</KeyboardAwareScrollView>
 	);
 }

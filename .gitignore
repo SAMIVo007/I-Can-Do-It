@@ -43,5 +43,8 @@ app-example
 /ios
 /android
 
+# agent files
 .agent/
 .vscode/
+.claude/
+.design/

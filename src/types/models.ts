@@ -30,6 +30,8 @@ export interface Goal {
   id: string;
   title: string; // e.g. "Get in better shape"
   focusArea: HabitCategory;
+  emoji?: string;  // Optional visual identity, e.g. "💪"
+  color?: string;  // Optional accent hex, e.g. "#7BAE7F"
   createdAt: string;
 }
 

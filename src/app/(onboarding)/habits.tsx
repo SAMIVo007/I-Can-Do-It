@@ -102,6 +102,33 @@ export default function OnboardingHabitsScreen() {
               </Pressable>
             );
           })}
+          {/* Custom habits added by user — show as selected pills */}
+          {selectedHabits
+            .filter((h) => !allSuggestions.some((s) => s.title === h.title))
+            .map((habit) => (
+              <Pressable
+                key={habit.title}
+                onPress={() => toggleHabit(habit)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: Spacing.xs,
+                  paddingVertical: Spacing.sm,
+                  paddingHorizontal: Spacing.md,
+                  borderRadius: Radii.xl,
+                  borderWidth: 1,
+                  borderColor: Colors.success,
+                  backgroundColor: Colors.success,
+                } satisfies ViewStyle}
+              >
+                <Svg width={14} height={14} viewBox="0 0 24 24">
+                  <Path d="M5 13l4 4L19 7" stroke={Colors.white} strokeWidth={3} strokeLinecap="round" fill="none" />
+                </Svg>
+                <Body size="sm" style={{ color: Colors.white }}>
+                  {habit.title}
+                </Body>
+              </Pressable>
+            ))}
         </View>
 
         {/* Custom habit input */}

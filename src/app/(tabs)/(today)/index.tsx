@@ -68,6 +68,7 @@ export default function TodayScreen() {
 		() => allHabits.filter((h) => h.isActive),
 		[allHabits],
 	);
+	const goals = useHabitStore((s) => s.goals);
 	const logs = useHabitStore((s) => s.logs);
 	const toggleHabit = useHabitStore((s) => s.toggleHabit);
 	const updateProgress = useHabitStore((s) => s.updateProgress);
@@ -207,25 +208,46 @@ export default function TodayScreen() {
 						</Card>
 					) : (
 						<View style={{ gap: Spacing.md }}>
-							{habits.map((habit, index) => (
-								<Animated.View
-									key={habit.id}
-									entering={FadeInDown.duration(300).delay(300 + index * 50)}
-									layout={LinearTransition.springify()}
-								>
-									<HabitMenu habitId={habit.id}>
-										<HabitCard
-											habit={habit}
-											log={getLogForHabit(habit.id)}
-											onToggle={() => handleToggle(habit.id)}
-											onIncrement={(amount) => handleIncrement(habit.id, amount)}
-											onPress={() => {
-												router.push(`/habit/${habit.id}` as any);
-											}}
-										/>
-									</HabitMenu>
-								</Animated.View>
-							))}
+							{habits.map((habit, index) => {
+								const goal = goals.find((g) => g.id === habit.goalId);
+								return (
+									<Animated.View
+										key={habit.id}
+										entering={FadeInDown.duration(300).delay(300 + index * 50)}
+										layout={LinearTransition.springify()}
+									>
+										{/* Subtle goal label above each card */}
+										{goal && (
+											<View
+												style={{
+													flexDirection: "row",
+													alignItems: "center",
+													gap: Spacing.xs,
+													marginBottom: Spacing.xs,
+													paddingHorizontal: Spacing.xs,
+												}}
+											>
+												<Body style={{ fontSize: 11 }}>{goal.emoji ?? "🎯"}</Body>
+												<Body
+													size="xs"
+													style={{ color: goal.color ?? Colors.textSecondary }}
+												>
+													{goal.title}
+												</Body>
+											</View>
+										)}
+										<HabitMenu habitId={habit.id}>
+											<HabitCard
+												habit={habit}
+												log={getLogForHabit(habit.id)}
+												categoryLabel={goal?.focusArea}
+												onToggle={() => handleToggle(habit.id)}
+												onIncrement={(amount) => handleIncrement(habit.id, amount)}
+											/>
+										</HabitMenu>
+									</Animated.View>
+								);
+							})}
 						</View>
 					)}
 				</Animated.View>

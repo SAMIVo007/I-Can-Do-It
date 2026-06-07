@@ -11,6 +11,7 @@ import { Colors, Spacing } from '@/constants/theme';
 import { Heading, Body } from '@/components/ui/typography';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useOnboardingStore } from '@/stores/onboarding-store';
 import { useHabitStore } from '@/stores/habit-store';
 import { storage } from '@/utils/storage';
@@ -21,15 +22,21 @@ export default function OnboardingScheduleScreen() {
   const { addGoal, addHabit } = useHabitStore();
   const [enableReminders, setEnableReminders] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleFinish = async () => {
     setIsLoading(true);
 
     try {
-      // Request notification permissions if enabled
+      // Request notification permissions if enabled — don't let a rejected
+      // permission prompt block onboarding completion
       if (enableReminders) {
-        await requestNotificationPermissions();
-        storage.set('remindersEnabled', true);
+        try {
+          await requestNotificationPermissions();
+          storage.set('remindersEnabled', true);
+        } catch (permError) {
+          console.warn('Notification permission request failed:', permError);
+        }
       }
 
       // Save user name
@@ -60,12 +67,17 @@ export default function OnboardingScheduleScreen() {
       router.replace('/(tabs)/(today)' as any);
     } catch (error) {
       console.error('Onboarding error:', error);
+      setErrorMessage(
+        'We could not finish setting up your account. Please try again.\n\n' +
+          (error instanceof Error ? error.message : String(error))
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
+		<>
 			<ScrollView
 				contentContainerStyle={{
 					flexGrow: 1,
@@ -197,6 +209,16 @@ export default function OnboardingScheduleScreen() {
 					/>
 				</Animated.View>
 			</ScrollView>
+
+			<ConfirmDialog
+				visible={errorMessage !== null}
+				title="Something went wrong"
+				message={errorMessage ?? undefined}
+				confirmLabel="OK"
+				onConfirm={() => {}}
+				onDismiss={() => setErrorMessage(null)}
+			/>
+		</>
 		);
 }
 

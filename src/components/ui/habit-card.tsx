@@ -22,6 +22,11 @@ interface HabitCardProps {
 	onPress?: () => void;
 	onLongPress?: () => void;
 	onIncrement?: (amount: number) => void;
+	/**
+	 * Label for the pill. Pass the parent goal's focusArea so habits show
+	 * their goal's domain. Falls back to the habit's own category.
+	 */
+	categoryLabel?: string;
 }
 
 export function HabitCard({
@@ -31,6 +36,7 @@ export function HabitCard({
 	onPress,
 	onLongPress,
 	onIncrement,
+	categoryLabel,
 }: HabitCardProps) {
 	const Colors = useAppColors();
 	const completed = isHabitComplete(habit, log);
@@ -132,7 +138,7 @@ export function HabitCard({
 				</View>
 
 				{/* Category pill */}
-				<CategoryPill label={habit.category} compact />
+				<CategoryPill label={categoryLabel ?? habit.category} compact />
 			</Pressable>
 		</View>
 	);

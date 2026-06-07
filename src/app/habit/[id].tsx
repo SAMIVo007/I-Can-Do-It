@@ -28,7 +28,9 @@ export default function HabitDetailScreen() {
 	const insets = useSafeAreaInsets();
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const habits = useHabitStore((s) => s.habits);
+	const goals = useHabitStore((s) => s.goals);
 	const habit = habits.find((h) => h.id === id);
+	const parentGoal = goals.find((g) => g.id === habit?.goalId);
 	const today = toDateKey();
 	const log = useHabitStore((s) => s.logs.find(l => l.habitId === id && l.date === today));
 	const updateProgress = useHabitStore((s) => s.updateProgress);
@@ -129,7 +131,7 @@ export default function HabitDetailScreen() {
 						labelSize="lg"
 					/>
 					<Heading size="lg">{habit.title}</Heading>
-					<CategoryPill label={habit.category} />
+					<CategoryPill label={parentGoal?.focusArea ?? habit.category} />
 				</Animated.View>
 
 				<Animated.View entering={FadeInDown.duration(400).delay(100)}>

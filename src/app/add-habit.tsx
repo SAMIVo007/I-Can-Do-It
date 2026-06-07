@@ -3,6 +3,7 @@
  */
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { NativeBottomSheet } from "@/components/ui/native-bottom-sheet";
 import { StepperInput } from "@/components/ui/stepper-input";
 import { TextInput } from "@/components/ui/text-input";
@@ -14,31 +15,31 @@ import type { HabitCategory, HabitType } from "@/types/models";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-	Alert,
 	Pressable,
-	TextInput as RNTextInput,
 	ScrollView,
+	TextInput as RNTextInput,
 	View,
 	type ViewStyle
 } from "react-native";
-
-const CATEGORIES: HabitCategory[] = [
-	"Health",
-	"Fitness",
-	"Learning",
-	"Mindfulness",
-	"Finance",
-	"Creative",
-];
+import { GOAL_COLORS } from "@/app/add-goal";
 
 export default function AddHabitScreen() {
 	const Colors = useAppColors();
-	const { id: editId } = useLocalSearchParams<{ id?: string }>();
+	const { id: editId, goalId: preselectedGoalId } = useLocalSearchParams<{ id?: string; goalId?: string }>();
 	const habits = useHabitStore((s) => s.habits);
+	const goals = useHabitStore((s) => s.goals);
 	const editHabit = editId ? habits.find((h) => h.id === editId) : undefined;
 
+	// Goal selection: pre-select from param > edit habit's goal > first goal
+	const defaultGoalId =
+		editHabit?.goalId ??
+		preselectedGoalId ??
+		(goals.length > 0 ? goals[0].id : "");
+
+	const [selectedGoalId, setSelectedGoalId] = useState<string>(defaultGoalId);
+	const selectedGoal = goals.find((g) => g.id === selectedGoalId);
+
 	const [title, setTitle] = useState(editHabit?.title ?? "");
-	const [category, setCategory] = useState<HabitCategory>(editHabit?.category ?? "Health");
 	const [habitType, setHabitType] = useState<HabitType>(editHabit?.type ?? "boolean");
 	const [target, setTarget] = useState(editHabit?.target ? String(editHabit.target) : "");
 	const [unit, setUnit] = useState(editHabit?.unit || "");
@@ -46,6 +47,7 @@ export default function AddHabitScreen() {
 
 
 	const [isOpen, setIsOpen] = useState(true);
+	const [noGoalVisible, setNoGoalVisible] = useState(false);
 	const inputRef = useRef<RNTextInput>(null);
 
 	useEffect(() => {
@@ -61,7 +63,6 @@ export default function AddHabitScreen() {
 	const [targetError, setTargetError] = useState("");
 	const [unitError, setUnitError] = useState("");
 
-	const goals = useHabitStore((s) => s.goals);
 	const addHabit = useHabitStore((s) => s.addHabit);
 	const updateHabit = useHabitStore((s) => s.updateHabit);
 
@@ -96,10 +97,15 @@ export default function AddHabitScreen() {
 
 		if (hasError) return;
 
+		// Category is no longer asked for — it's derived from the parent goal's
+		// focus area. (Column kept for back-compat / existing data.)
+		const derivedCategory: HabitCategory =
+			selectedGoal?.focusArea ?? editHabit?.category ?? "Health";
+
 		if (editHabit) {
 			await updateHabit(editHabit.id, {
 				title: title.trim(),
-				category,
+				category: derivedCategory,
 				type: habitType,
 				target:
 					habitType === "quantitative" ? Number(target) || undefined : undefined,
@@ -108,15 +114,14 @@ export default function AddHabitScreen() {
 					habitType === "quantitative" ? Number(incrementValue) || 1 : undefined,
 			});
 		} else {
-			const goalId = goals.length > 0 ? goals[0].id : "";
-			if (!goalId) {
-				Alert.alert("No Goal", "Please create a goal first.");
+			if (!selectedGoalId) {
+				setNoGoalVisible(true);
 				return;
 			}
 			await addHabit({
-				goalId,
+				goalId: selectedGoalId,
 				title: title.trim(),
-				category,
+				category: derivedCategory,
 				type: habitType,
 				target:
 					habitType === "quantitative" ? Number(target) || undefined : undefined,
@@ -173,6 +178,95 @@ export default function AddHabitScreen() {
 						</Pressable> */}
 					</View>
 
+					{/* Goal picker — only shown when creating (not editing) */}
+					{!editHabit && goals.length > 0 && (
+						<View style={{ gap: Spacing.md }}>
+							<Body
+								size="xs"
+								weight="medium"
+								style={{
+									textTransform: "uppercase",
+									letterSpacing: 1,
+									color: Colors.textSecondary,
+								}}
+							>
+								Goal
+							</Body>
+
+							{goals.length === 1 ? (
+								/* Single goal — show as a chip, not a picker */
+								<View
+									style={{
+										flexDirection: "row",
+										alignItems: "center",
+										gap: Spacing.sm,
+										paddingVertical: Spacing.sm,
+										paddingHorizontal: Spacing.md,
+										borderRadius: Radii.xl,
+										borderWidth: 1,
+										borderColor: goals[0].color ?? GOAL_COLORS[0],
+										backgroundColor: (goals[0].color ?? GOAL_COLORS[0]) + "1A",
+										alignSelf: "flex-start",
+									}}
+								>
+									<Body style={{ fontSize: 16 }}>
+										{goals[0].emoji ?? "🎯"}
+									</Body>
+									<Body size="sm" weight="medium">
+										{goals[0].title}
+									</Body>
+								</View>
+							) : (
+								/* Multiple goals — horizontal scrollable chips */
+								<ScrollView
+									horizontal
+									showsHorizontalScrollIndicator={false}
+									contentContainerStyle={{ gap: Spacing.sm }}
+								>
+									{goals.map((goal) => {
+										const isSelected = selectedGoalId === goal.id;
+										const color = goal.color ?? GOAL_COLORS[0];
+										return (
+											<Pressable
+												key={goal.id}
+												onPress={() => setSelectedGoalId(goal.id)}
+												style={({ pressed }) => ({
+													flexDirection: "row",
+													alignItems: "center",
+													gap: Spacing.xs,
+													paddingVertical: Spacing.sm,
+													paddingHorizontal: Spacing.md,
+													borderRadius: Radii.xl,
+													borderWidth: 1.5,
+													borderColor: isSelected ? color : Colors.border,
+													backgroundColor: isSelected
+														? color + "22"
+														: Colors.transparent,
+													opacity: pressed ? 0.75 : 1,
+												})}
+											>
+												<Body style={{ fontSize: 16 }}>
+													{goal.emoji ?? "🎯"}
+												</Body>
+												<Body
+													size="sm"
+													weight={isSelected ? "medium" : "regular"}
+													style={{
+														color: isSelected
+															? Colors.textPrimary
+															: Colors.textSecondary,
+													}}
+												>
+													{goal.title}
+												</Body>
+											</Pressable>
+										);
+									})}
+								</ScrollView>
+							)}
+						</View>
+					)}
+
 					{/* Input */}
 					<View>
 						<TextInput
@@ -190,57 +284,6 @@ export default function AddHabitScreen() {
 								{titleError}
 							</Body>
 						) : null}
-					</View>
-
-					{/* Category */}
-					<View style={{ gap: Spacing.md }}>
-						<Body
-							size="xs"
-							weight="medium"
-							style={{
-								textTransform: "uppercase",
-								letterSpacing: 1,
-								color: Colors.textSecondary,
-							}}
-						>
-							Category
-						</Body>
-						<View
-							style={
-								{
-									flexDirection: "row",
-									flexWrap: "wrap",
-									gap: Spacing.sm,
-								} satisfies ViewStyle
-							}
-						>
-							{CATEGORIES.map((cat) => (
-								<Pressable
-									key={cat}
-									onPress={() => setCategory(cat)}
-									style={
-										{
-											paddingVertical: Spacing.sm,
-											paddingHorizontal: Spacing.md,
-											borderRadius: Radii.xl,
-											borderWidth: 1,
-											borderColor: category === cat ? Colors.accent : Colors.border,
-											backgroundColor:
-												category === cat ? Colors.accent : Colors.transparent,
-										} satisfies ViewStyle
-									}
-								>
-									<Body
-										size="sm"
-										style={{
-											color: category === cat ? Colors.white : Colors.textPrimary,
-										}}
-									>
-										{cat}
-									</Body>
-								</Pressable>
-							))}
-						</View>
 					</View>
 
 					{/* Type Toggle */}
@@ -372,6 +415,15 @@ export default function AddHabitScreen() {
 					/>
 				</ScrollView>
 			</NativeBottomSheet>
+
+			<ConfirmDialog
+				visible={noGoalVisible}
+				title="No Goal Yet"
+				message="Create a goal first, then add habits to it."
+				confirmLabel="OK"
+				onConfirm={() => {}}
+				onDismiss={() => setNoGoalVisible(false)}
+			/>
 		</View>
 	);
 }

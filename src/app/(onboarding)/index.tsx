@@ -99,7 +99,7 @@ export default function OnboardingGoalScreen() {
                 size="sm"
                 style={{ color: focusArea === area ? Colors.white : Colors.textPrimary }}
               >
-                {area === 'Health' ? 'Health & Fitness' : area === 'Finance' ? 'Personal Finance' : area === 'Creative' ? 'Creative Project' : area === 'Fitness' ? 'Career Growth' : area}
+                {area}
               </Body>
             </Pressable>
           ))}

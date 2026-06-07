@@ -49,10 +49,14 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
         FOREIGN KEY (habitId) REFERENCES habits(id)
       );
     `);
-    try {
-      await db.execAsync('ALTER TABLE habits ADD COLUMN incrementValue REAL DEFAULT 1');
-    } catch (e) {
-      // Ignore if column already exists
+    // Incremental migrations — each wrapped so existing columns are silently skipped
+    const migrations = [
+      'ALTER TABLE habits ADD COLUMN incrementValue REAL DEFAULT 1',
+      'ALTER TABLE goals ADD COLUMN emoji TEXT',
+      'ALTER TABLE goals ADD COLUMN color TEXT',
+    ];
+    for (const sql of migrations) {
+      try { await db.execAsync(sql); } catch { /* column already exists */ }
     }
   }
   return db;
@@ -74,7 +78,17 @@ interface HabitState {
   hydrate: () => Promise<void>;
 
   // Goal actions
-  addGoal: (title: string, focusArea: HabitCategory) => Promise<Goal>;
+  addGoal: (title: string, focusArea: HabitCategory, emoji?: string, color?: string) => Promise<Goal>;
+  updateGoal: (id: string, updates: Partial<Pick<Goal, 'title' | 'focusArea' | 'emoji' | 'color'>>) => Promise<void>;
+  /**
+   * Delete a goal.
+   *  - 'cascade'  → also delete the goal's habits and their logs.
+   *  - 'reassign' → move the goal's habits to a generic "Daily" goal (created
+   *                 if needed), preserving their streaks/history.
+   */
+  deleteGoal: (id: string, mode?: 'cascade' | 'reassign') => Promise<void>;
+  /** Get-or-create the generic catch-all "Daily" goal. */
+  getOrCreateDailyGoal: () => Promise<Goal>;
 
   // Habit actions
   addHabit: (params: {
@@ -95,6 +109,7 @@ interface HabitState {
   updateProgress: (habitId: string, date: string, value: number) => Promise<void>;
 
   // Selectors
+  getHabitsForGoal: (goalId: string) => Habit[];
   getHabitsForDate: (date: string) => Habit[];
   getLogForHabit: (habitId: string, date: string) => DailyLog | undefined;
   getTodayCompletionRate: () => number;
@@ -132,20 +147,76 @@ export const useHabitStore = create<HabitState>((set, get) => ({
     set({ goals, habits: parsedHabits, logs, isHydrated: true });
   },
 
-  addGoal: async (title, focusArea) => {
+  addGoal: async (title, focusArea, emoji, color) => {
     const database = await getDb();
     const goal: Goal = {
       id: generateId(),
       title,
       focusArea,
+      emoji: emoji ?? undefined,
+      color: color ?? undefined,
       createdAt: new Date().toISOString(),
     };
     await database.runAsync(
-      'INSERT INTO goals (id, title, focusArea, createdAt) VALUES (?, ?, ?, ?)',
-      [goal.id, goal.title, goal.focusArea, goal.createdAt]
+      'INSERT INTO goals (id, title, focusArea, emoji, color, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
+      [goal.id, goal.title, goal.focusArea, goal.emoji ?? null, goal.color ?? null, goal.createdAt]
     );
     set((s) => ({ goals: [goal, ...s.goals] }));
     return goal;
+  },
+
+  updateGoal: async (id, updates) => {
+    const database = await getDb();
+    const setClauses: string[] = [];
+    const values: (string | null)[] = [];
+    for (const [key, value] of Object.entries(updates)) {
+      setClauses.push(`${key} = ?`);
+      values.push(value as string | null ?? null);
+    }
+    values.push(id);
+    if (setClauses.length > 0) {
+      await database.runAsync(`UPDATE goals SET ${setClauses.join(', ')} WHERE id = ?`, values);
+    }
+    set((s) => ({
+      goals: s.goals.map((g) => (g.id === id ? { ...g, ...updates } : g)),
+    }));
+  },
+
+  getOrCreateDailyGoal: async () => {
+    const existing = get().goals.find(
+      (g) => g.title.trim().toLowerCase() === 'daily'
+    );
+    if (existing) return existing;
+    return get().addGoal('Daily', 'Custom', '🗓️', '#6B9E9E');
+  },
+
+  deleteGoal: async (id, mode = 'cascade') => {
+    const database = await getDb();
+    const orphanHabits = get().habits.filter((h) => h.goalId === id);
+
+    if (orphanHabits.length > 0) {
+      if (mode === 'reassign') {
+        // Move habits to the generic "Daily" goal, preserving logs/streaks.
+        const daily = await get().getOrCreateDailyGoal();
+        await database.runAsync('UPDATE habits SET goalId = ? WHERE goalId = ?', [daily.id, id]);
+        set((s) => ({
+          habits: s.habits.map((h) => (h.goalId === id ? { ...h, goalId: daily.id } : h)),
+        }));
+      } else {
+        // Cascade — delete the habits and their logs.
+        for (const h of orphanHabits) {
+          await database.runAsync('DELETE FROM daily_logs WHERE habitId = ?', [h.id]);
+        }
+        await database.runAsync('DELETE FROM habits WHERE goalId = ?', [id]);
+        set((s) => ({
+          habits: s.habits.filter((h) => h.goalId !== id),
+          logs: s.logs.filter((l) => !orphanHabits.some((h) => h.id === l.habitId)),
+        }));
+      }
+    }
+
+    await database.runAsync('DELETE FROM goals WHERE id = ?', [id]);
+    set((s) => ({ goals: s.goals.filter((g) => g.id !== id) }));
   },
 
   addHabit: async (params) => {
@@ -282,6 +353,10 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       );
       set((s) => ({ logs: [log, ...s.logs] }));
     }
+  },
+
+  getHabitsForGoal: (goalId) => {
+    return get().habits.filter((h) => h.goalId === goalId && h.isActive);
   },
 
   getHabitsForDate: (_date) => {

@@ -3,6 +3,7 @@
  */
 
 import { Colors } from "@/constants/theme";
+import { useStorage } from "@/hooks/use-storage";
 import { useHabitStore } from "@/stores/habit-store";
 import {
 	Newsreader_400Regular,
@@ -56,6 +57,10 @@ export default function RootLayout() {
 	const hydrate = useHabitStore((s) => s.hydrate);
 	const isHydrated = useHabitStore((s) => s.isHydrated);
 
+	// Routing between onboarding and the main app is handled declaratively
+	// via <Stack.Protected> guards below — no imperative redirect needed.
+	const [hasOnboarded] = useStorage("hasOnboarded", false);
+
 	useEffect(() => {
 		hydrate();
 	}, [hydrate]);
@@ -78,37 +83,68 @@ export default function RootLayout() {
 		<KeyboardProvider>
 			<ThemeProvider value={SlateTheme}>
 				<Stack screenOptions={{ headerShown: false }}>
-					<Stack.Screen
-						name="(onboarding)"
-						options={{
-							presentation: "modal",
-							animation: "slide_from_bottom",
-						}}
-					/>
-					<Stack.Screen name="(tabs)" />
-					<Stack.Screen
-						name="add-habit"
-						options={{
-							presentation: "transparentModal",
-							animation: "none",
-							headerShown: false,
-							title: "Add Habit",
-							contentStyle: { backgroundColor: "transparent" },
-							headerStyle: { backgroundColor: Colors.background as string },
-							headerShadowVisible: false,
-							headerTintColor: Colors.accent as string,
-						}}
-					/>
-					<Stack.Screen
-						name="habit/[id]"
-						options={{
-							headerShown: false,
-							title: "Habit Details",
-							headerStyle: { backgroundColor: Colors.background as string },
-							headerShadowVisible: false,
-							headerTintColor: Colors.textPrimary as string,
-						}}
-					/>
+
+					{/* Un-onboarded users: only the onboarding flow exists, so the
+					    app opens straight into it and seeds the first goal + habits. */}
+					<Stack.Protected guard={!hasOnboarded}>
+						<Stack.Screen
+							name="(onboarding)"
+							options={{
+								presentation: "modal",
+								animation: "slide_from_bottom",
+							}}
+						/>
+					</Stack.Protected>
+
+					{/* Onboarded users: the main app. Guarded so a fresh user can never
+					    land here with an empty database. */}
+					<Stack.Protected guard={hasOnboarded}>
+						<Stack.Screen name="(tabs)" />
+						<Stack.Screen
+							name="add-habit"
+							options={{
+								presentation: "transparentModal",
+								animation: "none",
+								headerShown: false,
+								title: "Add Habit",
+								contentStyle: { backgroundColor: "transparent" },
+								headerStyle: { backgroundColor: Colors.background as string },
+								headerShadowVisible: false,
+								headerTintColor: Colors.accent as string,
+							}}
+						/>
+						<Stack.Screen
+							name="add-goal"
+							options={{
+								presentation: "transparentModal",
+								animation: "none",
+								headerShown: false,
+								title: "Add Goal",
+								contentStyle: { backgroundColor: "transparent" },
+							}}
+						/>
+						<Stack.Screen
+							name="habit/[id]"
+							options={{
+								headerShown: false,
+								title: "Habit Details",
+								headerStyle: { backgroundColor: Colors.background as string },
+								headerShadowVisible: false,
+								headerTintColor: Colors.textPrimary as string,
+							}}
+						/>
+						<Stack.Screen
+							name="goal/[id]"
+							options={{
+								headerShown: false,
+								title: "Goal Details",
+								headerStyle: { backgroundColor: Colors.background as string },
+								headerShadowVisible: false,
+								headerTintColor: Colors.textPrimary as string,
+							}}
+						/>
+					</Stack.Protected>
+
 					<Stack.Screen name="+not-found" />
 				</Stack>
 			</ThemeProvider>

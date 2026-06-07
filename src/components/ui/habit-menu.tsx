@@ -1,8 +1,9 @@
-import React, { isValidElement, cloneElement } from 'react';
-import { ActionSheetIOS, Alert, Platform, Pressable, View } from 'react-native';
+import React, { useState } from 'react';
+import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useHabitStore } from '@/stores/habit-store';
+import { ConfirmDialog } from './confirm-dialog';
 
 export interface HabitMenuProps {
   habitId: string;
@@ -11,50 +12,48 @@ export interface HabitMenuProps {
 }
 
 export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
+  const [dialogVisible, setDialogVisible] = useState(false);
   const deleteHabit = useHabitStore((s) => s.deleteHabit);
 
-  const handleDelete = () => {
-    Alert.alert("Delete Habit", "Are you sure you want to delete this habit? This cannot be undone.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => { deleteHabit(habitId); router.back(); } }
-    ]);
-  };
-
-  const showOptions = () => {
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options: ['Cancel', 'Edit Habit', 'Delete Habit'], cancelButtonIndex: 0, destructiveButtonIndex: 2 },
-        (idx) => {
-          if (idx === 1) router.push(`/add-habit?id=${habitId}` as any);
-          if (idx === 2) handleDelete();
-        }
-      );
-    } else {
-      Alert.alert('Habit Options', 'What would you like to do?', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Edit Habit', onPress: () => router.push(`/add-habit?id=${habitId}` as any) },
-        { text: 'Delete Habit', style: 'destructive', onPress: handleDelete }
-      ]);
+  const handleDelete = async () => {
+    await deleteHabit(habitId);
+    if (router.canGoBack()) {
+      router.back();
     }
   };
 
-  const triggerOptions = () => {
+  const openMenu = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    showOptions();
+    setDialogVisible(true);
   };
 
-  return isIcon ? (
-    <Pressable onPress={triggerOptions}>
-      <View pointerEvents="none">
-        {children}
-      </View>
-    </Pressable>
-  ) : isValidElement(children) ? (
-    cloneElement(children as React.ReactElement<any>, {
-      onPress: () => router.push(`/habit/${habitId}` as any),
-      onLongPress: triggerOptions,
-    })
-  ) : (
-    <>{children}</>
+  return (
+    <>
+      {isIcon ? (
+        <Pressable onPress={openMenu}>
+          <View pointerEvents="none">{children}</View>
+        </Pressable>
+      ) : React.isValidElement(children) ? (
+        React.cloneElement(children as React.ReactElement<any>, {
+          onPress: () => router.push(`/habit/${habitId}` as any),
+          onLongPress: openMenu,
+        })
+      ) : (
+        <>{children}</>
+      )}
+
+      <ConfirmDialog
+        visible={dialogVisible}
+        title="Habit Options"
+        message="What would you like to do?"
+        confirmLabel="Delete Habit"
+        confirmDestructive
+        onConfirm={handleDelete}
+        secondaryLabel="Edit Habit"
+        onSecondary={() => router.push(`/add-habit?id=${habitId}` as any)}
+        cancelLabel="Cancel"
+        onDismiss={() => setDialogVisible(false)}
+      />
+    </>
   );
 }

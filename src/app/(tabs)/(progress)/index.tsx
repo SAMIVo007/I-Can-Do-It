@@ -18,6 +18,7 @@ import {
 import { StatCard } from "@/components/ui/stat-card";
 import { Body, Heading } from "@/components/ui/typography";
 import { WeekCircles } from "@/components/ui/week-circles";
+import { YearlyHeatmap } from "@/components/ui/yearly-heatmap";
 import { Spacing } from "@/constants/theme";
 import { useAppColors } from "@/hooks/use-app-colors";
 import { useHabitStore } from "@/stores/habit-store";
@@ -308,6 +309,7 @@ export default function ProgressScreen() {
 				</View>
 			</Animated.View>
 
+		
 			{/* ── This Week ────────────────────────────────────── */}
 			<Animated.View entering={FadeInDown.duration(400).delay(300)}>
 				<Card variant="filled" padding="lg">
@@ -410,8 +412,25 @@ export default function ProgressScreen() {
 					</View>
 				</Card>
 			</Animated.View>
+
+			{/* ── Yearly Overview ─────────────────────────────── */}
+			<Animated.View entering={FadeInDown.duration(400).delay(200)}>
+				<Card variant="filled" padding="lg">
+					<View style={{ gap: Spacing.lg }}>
+						<View style={{ gap: Spacing.xs }}>
+							<Body weight="bold" size="lg">
+								Year in Review
+							</Body>
+							<Body size="xs" secondary>
+								Your habit consistency over the last 365 days
+							</Body>
+						</View>
+						<YearlyHeatmap habits={habits} logs={logs} />
+					</View>
+				</Card>
+			</Animated.View>
 			
-			{/* ── Habit Breakdown ───────────────────────────────── */}
+			{/* ── Daily Habit Breakdown ───────────────────────────────── */}
 			{habitBreakdown.length > 0 && (
 				<Animated.View entering={FadeInDown.duration(400).delay(400)}>
 					<Card variant="filled" padding="lg">

@@ -14,15 +14,19 @@ import Animated, {
 interface FABProps {
 	onPress: () => void;
 	isExpanded: SharedValue<number>;
+	/** Label shown when expanded. Defaults to "Add Habit". */
+	label?: string;
+	/** Expanded pill width. Defaults to 148. */
+	expandedWidth?: number;
 }
 
-export function FAB({ onPress, isExpanded }: FABProps) {
+export function FAB({ onPress, isExpanded, label = "Add Habit", expandedWidth = 148 }: FABProps) {
 	const Colors = useAppColors();
 	const theme = useTheme();
 
 	const animatedStyle = useAnimatedStyle(() => {
 		return {
-			width: withSpring(isExpanded.value === 1 ? 148 : 56, {
+			width: withSpring(isExpanded.value === 1 ? expandedWidth : 56, {
 				damping: 10,
 				stiffness: 150,
 				mass: 0.3,
@@ -88,7 +92,7 @@ export function FAB({ onPress, isExpanded }: FABProps) {
 						}}
 						numberOfLines={1}
 					>
-						Add Habit
+						{label}
 					</Body>
 				</Animated.View>
 			</Pressable>
