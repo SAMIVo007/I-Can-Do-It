@@ -14,10 +14,11 @@ import { Radii, Spacing } from '@/constants/theme';
 
 interface CardProps extends ViewProps {
   variant?: 'filled' | 'bordered';
-  padding?: 'sm' | 'md' | 'lg';
+  padding?: 'none' | 'sm' | 'md' | 'lg';
 }
 
 const PADDING_MAP: Record<string, number> = {
+  none: 0,
   sm: Spacing.md,
   md: Spacing.lg,
   lg: Spacing.xl,

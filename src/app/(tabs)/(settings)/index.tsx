@@ -4,33 +4,32 @@
 
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Body, Heading } from "@/components/ui/typography";
-import { useAppColors } from "@/hooks/use-app-colors";
 import { Fonts, Spacing } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
 import { useStorage } from "@/hooks/use-storage";
 import {
 	cancelAllReminders,
 	requestNotificationPermissions,
 } from "@/utils/notifications";
-import React, { useState } from "react";
-import { View, TextInput as RNTextInput } from "react-native";
 import { Switch as ExpoSwitch, Host } from "@expo/ui";
+import { useState } from "react";
+import { TextInput as RNTextInput, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 // New UI Components
-import { SettingsGroup, SettingsRow, SettingsChevron } from "@/components/ui/settings-list";
-import { ProBanner } from "@/components/ui/pro-banner";
+import { SettingsChevron, SettingsGroup, SettingsRow } from "@/components/ui/settings-list";
 
 export default function SettingsScreen() {
 	const Colors = useAppColors();
-	
+
 	// State
 	const [userName, setUserName] = useStorage("userName", "");
 	const [remindersEnabled, setRemindersEnabled] = useStorage("remindersEnabled", false);
 	const [hapticsEnabled, setHapticsEnabled] = useStorage("hapticsEnabled", true);
-	
+
 	const [appTheme, setAppTheme] = useStorage<"system" | "light" | "dark">("appTheme", "system");
-	
+
 	// Dialogs
 	const [permDialogVisible, setPermDialogVisible] = useState(false);
 	const [resetDialogVisible, setResetDialogVisible] = useState(false);
@@ -68,8 +67,12 @@ export default function SettingsScreen() {
 		>
 			{/* Header */}
 			<Animated.View entering={FadeInDown.duration(400)}>
-				<Heading size="xl" style={{ textAlign: "center", marginBottom: Spacing.sm }}>Settings</Heading>
+				<Heading size="xl">Settings</Heading>
+				<Body secondary style={{ marginTop: Spacing.xs }}>
+					Manage your preferences and data.
+				</Body>
 			</Animated.View>
+
 
 			{/* PRO Banner */}
 			{/* <Animated.View entering={FadeInDown.duration(400).delay(100)}>
@@ -153,7 +156,7 @@ export default function SettingsScreen() {
 					<SettingsRow
 						label="Language"
 						icon={{ ios: "globe", android: "language", web: "language" }}
-						onPress={() => {}} // Mock
+						onPress={() => { }} // Mock
 						trailing={
 							<View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.xs }}>
 								<Body secondary>English</Body>
@@ -170,7 +173,7 @@ export default function SettingsScreen() {
 					<SettingsRow
 						label="Send Feedback"
 						icon={{ ios: "paperplane", android: "send", web: "send" }}
-						onPress={() => {}} // Mock
+						onPress={() => { }} // Mock
 						trailing={<SettingsChevron />}
 					/>
 					<SettingsRow
@@ -188,7 +191,7 @@ export default function SettingsScreen() {
 				title="Permissions Required"
 				message="Please enable notifications in your device settings to receive habit reminders."
 				confirmLabel="OK"
-				onConfirm={() => {}}
+				onConfirm={() => { }}
 				onDismiss={() => setPermDialogVisible(false)}
 			/>
 
@@ -199,7 +202,7 @@ export default function SettingsScreen() {
 				message="This will permanently delete all your goals, habits, and progress. Are you sure?"
 				confirmLabel="Delete"
 				confirmDestructive
-				onConfirm={() => {}}
+				onConfirm={() => { }}
 				cancelLabel="Cancel"
 				onDismiss={() => setResetDialogVisible(false)}
 			/>

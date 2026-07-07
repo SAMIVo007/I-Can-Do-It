@@ -87,9 +87,8 @@ export function SettingsRow({
 				style={{
 					flexDirection: "row",
 					alignItems: "center",
-					paddingVertical: Spacing.lg,
 					paddingHorizontal: Spacing.lg,
-					minHeight: 56,
+					height: 56,
 					gap: Spacing.md,
 				}}
 			>
