@@ -1,5 +1,6 @@
 import { Body } from "@/components/ui/typography";
-import { Colors, Fonts, FontSizes, Spacing } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
+import { Fonts, FontSizes, Spacing } from "@/constants/theme";
 import { SymbolView } from "expo-symbols";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -31,6 +32,7 @@ export function StepperInput({
 	onChangeText,
 	min = 1,
 }: StepperInputProps) {
+	const Colors = useAppColors();
 	const [focused, setFocused] = useState(false);
 	const [direction, setDirection] = useState<"up" | "down">("up");
 	const inputRef = useRef<RNTextInput>(null);

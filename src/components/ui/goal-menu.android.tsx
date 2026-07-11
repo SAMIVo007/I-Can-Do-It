@@ -1,4 +1,4 @@
-import { Colors } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
 import { useHabitStore } from "@/stores/habit-store";
 import {
 	Text as AndroidText,
@@ -24,6 +24,7 @@ export interface GoalMenuProps {
 }
 
 export function GoalMenu({ goalId, children, isIcon }: GoalMenuProps) {
+	const Colors = useAppColors();
 	const [expanded, setExpanded] = useState(false);
 	const [dialogVisible, setDialogVisible] = useState(false);
 	const deleteGoal = useHabitStore((s) => s.deleteGoal);

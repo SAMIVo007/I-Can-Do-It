@@ -1,7 +1,8 @@
 import Stack from 'expo-router/stack';
-import { Colors } from '@/constants/theme';
+import { useAppColors } from '@/hooks/use-app-colors';
 
 export default function ProgressLayout() {
+  const Colors = useAppColors();
   return (
 			<Stack
 				screenOptions={{
@@ -16,3 +17,4 @@ export default function ProgressLayout() {
 			</Stack>
 		);
 }
+

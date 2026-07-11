@@ -5,7 +5,8 @@
 
 import React from 'react';
 import { View, Text, type ViewStyle, type TextStyle } from 'react-native';
-import { Colors, Fonts, FontSizes, Spacing } from '@/constants/theme';
+import { useAppColors } from '@/hooks/use-app-colors';
+import { Fonts, FontSizes, Spacing } from '@/constants/theme';
 
 interface CategoryPillProps {
   label: string;
@@ -14,7 +15,9 @@ interface CategoryPillProps {
 }
 
 export function CategoryPill({ label, selected, compact }: CategoryPillProps) {
+  const Colors = useAppColors();
   return (
+
     <View
       style={[
         {

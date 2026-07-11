@@ -5,7 +5,7 @@
  * Material AlertDialog instead of React Native's Alert.
  */
 
-import { Colors } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
 import {
 	AlertDialog,
 	Text as AndroidText,
@@ -27,6 +27,7 @@ export function ConfirmDialog({
 	cancelLabel,
 	onDismiss,
 }: ConfirmDialogProps) {
+	const Colors = useAppColors();
 	if (!visible) return null;
 
 	return (

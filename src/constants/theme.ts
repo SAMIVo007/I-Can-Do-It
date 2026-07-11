@@ -50,11 +50,7 @@ export const Colors = {
     android: Color.android.dynamic.tertiary,
     default: '#52402B',
   })!,
-  white: Platform.select({
-    ios: Color.ios.systemBackground,
-    android: Color.android.dynamic.background,
-    default: '#FFFFFF',
-  })!,
+  white: '#FFFFFF',
   transparent: 'transparent',
   textSecondary: Platform.select({
     ios: Color.ios.secondaryLabel,
@@ -67,6 +63,38 @@ export const Colors = {
     default: '#D9534F',
   })!,
 };
+
+// Static fallback palettes to support manual theme overrides
+export const LightColors = {
+  background: '#FAF9F6',
+  surface: '#F5F5F5',
+  textPrimary: '#333333',
+  textHeading: '#121212',
+  accent: '#36454F',
+  success: '#9DC183',
+  border: '#E0E0E0',
+  tertiary: '#52402B',
+  white: '#FFFFFF',
+  transparent: 'transparent',
+  textSecondary: '#888888',
+  danger: '#D9534F',
+};
+
+export const DarkColors = {
+  background: '#121212',
+  surface: '#1A1A1A',
+  textPrimary: '#E0E0E0',
+  textHeading: '#FFFFFF',
+  accent: '#A3B19B',
+  success: '#9DC183',
+  border: '#2E2E2E',
+  tertiary: '#D1C4E9',
+  white: '#FFFFFF',
+  transparent: 'transparent',
+  textSecondary: '#8E8E93',
+  danger: '#FF453A',
+};
+
 
 // ─── Typography Tokens ─────────────────────────────────────────
 export const Fonts = {

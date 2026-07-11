@@ -3,7 +3,8 @@
  * Bottom-border only style — Platinum (#E0E0E0) → Slate Blue (#36454F) on focus.
  */
 
-import { Colors, Fonts, FontSizes, Spacing } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
+import { Fonts, FontSizes, Spacing } from "@/constants/theme";
 import React, { forwardRef, useState } from "react";
 import {
 	TextInput as RNTextInput,
@@ -32,6 +33,7 @@ export const TextInput = forwardRef<RNTextInput, TextInputProps>(({
 	onBlur,
 	...props
 }: TextInputProps, ref) => {
+	const Colors = useAppColors();
 	const [focused, setFocused] = useState(false);
 	const [showPlaceholder, setShowPlaceholder] = useState(false);
 	const hasValue = Boolean(value && value.length > 0);

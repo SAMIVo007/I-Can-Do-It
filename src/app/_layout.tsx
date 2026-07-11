@@ -3,6 +3,7 @@
  */
 
 import { Colors } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
 import { useStorage } from "@/hooks/use-storage";
 import { useHabitStore } from "@/stores/habit-store";
 import {
@@ -27,21 +28,23 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 
 SplashScreen.preventAutoHideAsync();
 
-/** Custom theme to match Slate & Sage — strictly light mode */
-const SlateTheme = {
-	...DefaultTheme,
-	colors: {
-		...DefaultTheme.colors,
-		background: Colors.background as string,
-		card: Colors.background as string,
-		text: Colors.textPrimary as string,
-		border: Colors.border as string,
-		primary: Colors.accent as string,
-	},
-};
-
 export default function RootLayout() {
-	useColorScheme();
+	const Colors = useAppColors();
+	const colorScheme = useColorScheme();
+
+	/** Custom theme to match Slate & Sage */
+	const SlateTheme = {
+		...DefaultTheme,
+		colors: {
+			...DefaultTheme.colors,
+			background: Colors.background as string,
+			card: Colors.background as string,
+			text: Colors.textPrimary as string,
+			border: Colors.border as string,
+			primary: Colors.accent as string,
+		},
+	};
+
 
 	const [fontsLoaded] = useFonts({
 		Newsreader_400Regular,
@@ -61,6 +64,8 @@ export default function RootLayout() {
 	// via <Stack.Protected> guards below — no imperative redirect needed.
 	const [hasOnboarded] = useStorage("hasOnboarded", false);
 	const [appTheme] = useStorage<"system" | "light" | "dark">("appTheme", "system");
+	const activeThemeName = appTheme === "system" ? colorScheme : appTheme;
+
 
 	useEffect(() => {
 		hydrate();
@@ -90,7 +95,7 @@ export default function RootLayout() {
 
 	return (
 		<KeyboardProvider>
-			<ThemeProvider value={SlateTheme}>
+			<ThemeProvider value={SlateTheme} key={activeThemeName}>
 				<Stack screenOptions={{ headerShown: false }}>
 
 					{/* Un-onboarded users: only the onboarding flow exists, so the

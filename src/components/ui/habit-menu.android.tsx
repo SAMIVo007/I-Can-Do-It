@@ -1,4 +1,4 @@
-import { Colors } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
 import { useHabitStore } from "@/stores/habit-store";
 import {
 	AlertDialog,
@@ -25,6 +25,7 @@ export interface HabitMenuProps {
 }
 
 export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
+	const Colors = useAppColors();
 	const [expanded, setExpanded] = useState(false);
 	const [deleteAlertVisible, setDeleteAlertVisible] = useState(false);
 	const deleteHabit = useHabitStore((s) => s.deleteHabit);

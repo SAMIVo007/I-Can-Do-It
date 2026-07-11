@@ -3,7 +3,7 @@
  * Animated with Reanimated v4.
  */
 
-import { Colors } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
 import { SymbolView } from "expo-symbols";
 import React from "react";
 import { Pressable, type ViewStyle } from "react-native";
@@ -21,6 +21,7 @@ interface CheckboxProps {
 }
 
 export function Checkbox({ checked, onToggle, size = 30 }: CheckboxProps) {
+	const Colors = useAppColors();
 	const overlayStyle = useAnimatedStyle(() => ({
 		opacity: withTiming(checked ? 1 : 0, { duration: 200 }),
 	}));

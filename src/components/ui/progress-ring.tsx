@@ -5,7 +5,7 @@
  */
 
 import { DataText } from "@/components/ui/typography";
-import { Colors } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
 import React, { useEffect } from "react";
 import { View, type ViewStyle } from "react-native";
 import Animated, {
@@ -33,13 +33,17 @@ export function ProgressRing({
 	progress,
 	size = 80,
 	strokeWidth = 6,
-	color = Colors.accent,
-	trackColor = Colors.border,
+	color,
+	trackColor,
 	showLabel = true,
 	labelSize = "md",
 	children,
 }: ProgressRingProps) {
+	const Colors = useAppColors();
+	const finalColor = color ?? Colors.accent;
+	const finalTrackColor = trackColor ?? Colors.border;
 	const radius = (size - strokeWidth) / 2;
+
 	const circumference = 2 * Math.PI * radius;
 	const animatedProgress = useSharedValue(0);
 
@@ -71,7 +75,7 @@ export function ProgressRing({
 					cx={center}
 					cy={center}
 					r={radius}
-					stroke={trackColor}
+					stroke={finalTrackColor}
 					strokeWidth={strokeWidth}
 					fill="none"
 				/>
@@ -80,7 +84,7 @@ export function ProgressRing({
 					cx={center}
 					cy={center}
 					r={radius}
-					stroke={color}
+					stroke={finalColor}
 					strokeWidth={strokeWidth}
 					fill="none"
 					strokeDasharray={circumference}

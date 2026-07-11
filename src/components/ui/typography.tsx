@@ -8,7 +8,8 @@
 
 import React from 'react';
 import { Text, type TextProps, type TextStyle } from 'react-native';
-import { Colors, Fonts, FontSizes } from '@/constants/theme';
+import { useAppColors } from '@/hooks/use-app-colors';
+import { Fonts, FontSizes } from '@/constants/theme';
 
 // ─── Heading ───────────────────────────────────────────────────
 
@@ -26,6 +27,7 @@ const HEADING_SIZES: Record<string, number> = {
 };
 
 export function Heading({ size = 'lg', italic, style, ...props }: HeadingProps) {
+  const Colors = useAppColors();
   const fontFamily = italic ? Fonts.voiceItalic : Fonts.voiceBold;
   return (
     <Text
@@ -69,6 +71,7 @@ export function Body({
   style,
   ...props
 }: BodyProps) {
+  const Colors = useAppColors();
   return (
     <Text
       {...props}
@@ -100,6 +103,7 @@ const DATA_SIZES: Record<string, number> = {
 };
 
 export function DataText({ size = 'lg', style, ...props }: DataTextProps) {
+  const Colors = useAppColors();
   return (
     <Text
       selectable
@@ -117,3 +121,4 @@ export function DataText({ size = 'lg', style, ...props }: DataTextProps) {
     />
   );
 }
+
