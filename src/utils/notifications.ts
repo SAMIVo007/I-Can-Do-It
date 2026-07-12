@@ -25,11 +25,12 @@ export async function requestNotificationPermissions(): Promise<boolean> {
   return status === 'granted';
 }
 
-/** Schedule a daily repeating notification for a habit */
+/** Schedule a daily repeating notification for a habit's first reminder time */
 export async function scheduleHabitReminder(habit: Habit): Promise<string | null> {
-  if (!habit.reminderEnabled || !habit.reminderTime) return null;
+  const reminderTime = habit.reminderTimes?.[0];
+  if (!habit.reminderEnabled || !reminderTime) return null;
 
-  const [hours, minutes] = habit.reminderTime.split(':').map(Number);
+  const [hours, minutes] = reminderTime.split(':').map(Number);
 
   const id = await Notifications.scheduleNotificationAsync({
     content: {

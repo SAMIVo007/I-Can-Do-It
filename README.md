@@ -1,56 +1,139 @@
-# Welcome to your Expo app 👋
+# I Can Do It
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Goal-driven habit tracking for people who want daily progress to feel clear, calm, and achievable.
 
-## Get started
+Built for **HACKHAZARDS '26** under the **Human Experience & Productivity** theme and the **Expo sponsor track**.
 
-1. Install dependencies
+## Overview
 
-   ```bash
-   npm install
-   ```
+I Can Do It is a React Native Expo mobile app that helps users turn a personal goal into small daily habits, track progress, and understand consistency over time. Instead of treating habits as isolated checklist items, the app connects every habit to a larger goal and gives users daily, weekly, monthly, yearly, and goal-specific feedback.
 
-2. Start the app
+## Problem
 
-   ```bash
-   npx expo start
-   ```
+Productivity apps often become overwhelming: too many tasks, too much setup, and not enough emotional momentum. People usually know what they want to improve, but they struggle to convert that goal into repeatable actions and stay aware of progress without feeling judged by the app.
 
-In the output, you'll find options to open the app in a
+## Solution
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+I Can Do It creates a gentle loop:
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+1. Define a main goal.
+2. Break it into suggested or custom daily habits.
+3. Track boolean and measurable progress each day.
+4. Review progress through clear analytics and goal-specific dashboards.
+5. Adjust habits and goals as life changes.
 
-## Get a fresh project
+## Features
 
-When you're ready, run:
+- Three-step onboarding for name, primary goal, focus area, habits, and reminder preference.
+- Suggested habit templates for Health, Fitness, Learning, Mindfulness, Finance, and Creative goals.
+- Custom goals with emoji icons, muted accent colors, and focus areas.
+- Custom habits linked to goals.
+- Boolean habits, such as "Workout" or "No Sugar".
+- Quantitative habits, such as "Drink 2L Water" or "Read 20 Pages".
+- Custom increment values for measurable habits.
+- Today dashboard with greeting, date, progress ring, momentum message, and habit cards.
+- Goal labels on habit cards so daily actions stay tied to the bigger outcome.
+- Goal detail screens with goal-scoped analytics, streaks, check-ins, weekly circles, and last-30-day chart.
+- Progress analytics with current streak, productive days, weekly view, monthly bar chart, yearly heatmap, and per-habit breakdown.
+- Local-first SQLite persistence for goals, habits, and daily logs.
+- Local key-value preferences using the Expo SQLite localStorage polyfill.
+- Notification permission flow and reminder-time UI.
+- Haptic feedback with a user setting.
+- Light, dark, and system theme modes.
+- Native-feeling bottom sheets, action menus, platform-aware dialogs, native tabs, and Expo Symbols.
 
-```bash
-npm run reset-project
+## Tech Stack
+
+- **Framework:** Expo SDK 56, React Native 0.85, React 19
+- **Navigation:** Expo Router with file-based routing and protected route groups
+- **Language:** TypeScript with strict mode
+- **State:** Zustand stores
+- **Database:** Expo SQLite
+- **Preferences:** `expo-sqlite/localStorage` polyfill plus `useSyncExternalStore`
+- **Notifications:** Expo Notifications
+- **Haptics:** Expo Haptics
+- **UI:** Expo UI, Expo Symbols, React Native SVG, Reanimated, Gesture Handler
+- **Fonts:** Newsreader and Space Grotesk from Expo Google Fonts
+- **Charts:** Custom React Native SVG/components for bars, weekly circles, progress, and heatmap
+
+## Architecture
+
+```text
+src/
+  app/                 Expo Router screens and route groups
+    (onboarding)/      First-run goal and habit setup
+    (tabs)/            Today, Progress, Goals, Settings
+    goal/[id].tsx      Goal-specific dashboard
+    habit/[id].tsx     Habit detail and progress update screen
+    add-goal.tsx       Goal create/edit bottom sheet
+    add-habit.tsx      Habit create/edit bottom sheet
+  components/ui/       Reusable design-system components
+  constants/theme.ts   Slate & Sage color, spacing, radii, font tokens
+  hooks/               Storage, theme, and today/date hooks
+  stores/              Zustand onboarding and habit stores
+  types/models.ts      Core data models and progress helpers
+  utils/               Date, haptics, notifications, storage helpers
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Core data model:
 
-### Other setup steps
+- `Goal`: title, focus area, optional emoji/color.
+- `Habit`: linked goal, title, category, boolean or quantitative type, target/unit/increment, reminder fields.
+- `DailyLog`: one habit entry per day with numeric progress and completion timestamp.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+The app is local-first: goal, habit, and log mutations are written through to SQLite and reflected in the Zustand store. On launch, the root layout hydrates the store, loads fonts, applies theme settings, and gates users between onboarding and the main tab app.
 
-## Learn more
+## Installation
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npm install
+npx expo start
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Run on a platform:
 
-## Join the community
+```bash
+npm run android
+npm run ios
+npm run web
+```
 
-Join our community of developers creating universal apps.
+Verify TypeScript:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+npx tsc --noEmit
+```
+
+## Screenshots
+
+Add final screenshots before submission:
+
+- `screenshots/01-onboarding-goal.png` - Goal setup
+- `screenshots/02-onboarding-habits.png` - Suggested/custom habits
+- `screenshots/03-today.png` - Daily dashboard
+- `screenshots/04-goals.png` - Goals overview
+- `screenshots/05-goal-detail.png` - Goal analytics
+- `screenshots/06-progress.png` - Analytics and heatmap
+- `screenshots/07-settings.png` - Preferences
+
+## Expo Sponsor Track Fit
+
+The project uses Expo as the full mobile foundation: Expo Router, Expo SQLite, Expo Notifications, Expo Haptics, Expo Font, Expo Splash Screen, Expo Symbols, Expo UI, Expo Image/WebBrowser plugins, and a native development workflow. The app demonstrates how Expo can support a polished local-first productivity experience with platform-specific native details.
+
+## Current Limitations
+
+- Reminder times can be created in the UI, but full scheduling for every saved reminder still needs to be wired into habit create/update flows.
+- Settings includes placeholder rows for language and feedback.
+- Reset All Data opens a confirmation dialog, but the destructive reset action is not yet implemented.
+- No cloud sync, accounts, or external API integrations are implemented; the app is intentionally local-first.
+
+## Future Roadmap
+
+- Schedule and cancel all per-habit reminder times automatically.
+- Add a proper reset/export/import data flow.
+- Add optional cloud backup/sync.
+- Add richer goal templates and onboarding personalization.
+- Add streak recovery or pause days for more humane habit tracking.
+- Add widgets and push notification deep links.
+- Add accessibility pass for screen readers, contrast, and reduced motion.
+- Add tests for store selectors, SQLite migrations, and analytics calculations.

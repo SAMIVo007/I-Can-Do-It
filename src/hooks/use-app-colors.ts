@@ -20,9 +20,6 @@ export function useAppColors() {
   // Get the current app theme from storage reactively
   const [appTheme, setAppTheme] = useState(() => storage.get<"system" | "light" | "dark">("appTheme", "system"));
 
-  console.log("[useAppColors] colorScheme:", colorScheme, "appTheme:", appTheme);
-
-
   useEffect(() => {
     // Listen to theme preference changes in storage
     const unsubscribe = storage.subscribe("appTheme", () => {
@@ -52,4 +49,3 @@ export function useAppColors() {
   // If manually overridden, return static light/dark palettes to bypass PlatformColor limitations on Android
   return colorScheme === 'dark' ? DarkColors : LightColors;
 }
-

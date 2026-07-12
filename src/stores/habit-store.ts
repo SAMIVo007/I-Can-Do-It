@@ -8,6 +8,7 @@ import * as SQLite from 'expo-sqlite';
 import * as Crypto from 'expo-crypto';
 import type { Goal, Habit, DailyLog, DaySummary, MonthlyBar, HabitCategory, HabitType } from '@/types/models';
 import { toDateKey, getDayLabel, getCurrentWeekDates, getDaysInMonth } from '@/utils/date';
+import { storage } from '@/utils/storage';
 
 // ─── Database Setup ────────────────────────────────────────────
 
@@ -66,6 +67,241 @@ function generateId(): string {
   return Crypto.randomUUID();
 }
 
+const DEMO_GOALS: Goal[] = [
+  {
+    id: 'demo-goal-health',
+    title: 'Build a Healthier Routine',
+    focusArea: 'Health',
+    emoji: '💪',
+    color: '#7BAE7F',
+    createdAt: new Date(Date.now() - 1_000).toISOString(),
+  },
+  {
+    id: 'demo-goal-learning',
+    title: 'Become a Consistent Learner',
+    focusArea: 'Learning',
+    emoji: '📚',
+    color: '#5B8DB8',
+    createdAt: new Date(Date.now() - 2_000).toISOString(),
+  },
+  {
+    id: 'demo-goal-mindfulness',
+    title: 'Protect Mental Clarity',
+    focusArea: 'Mindfulness',
+    emoji: '🧘',
+    color: '#8E7DB5',
+    createdAt: new Date(Date.now() - 3_000).toISOString(),
+  },
+];
+
+const DEMO_HABITS: Habit[] = [
+  {
+    id: 'demo-habit-water',
+    goalId: 'demo-goal-health',
+    title: 'Drink 2L Water',
+    category: 'Health',
+    type: 'quantitative',
+    target: 2,
+    unit: 'L',
+    incrementValue: 0.5,
+    isActive: true,
+    createdAt: new Date(Date.now() - 90_000).toISOString(),
+    sortOrder: 0,
+    reminderEnabled: false,
+    reminderTimes: ['08:30', '15:00'],
+  },
+  {
+    id: 'demo-habit-steps',
+    goalId: 'demo-goal-health',
+    title: 'Walk 8,000 Steps',
+    category: 'Fitness',
+    type: 'quantitative',
+    target: 8000,
+    unit: 'steps',
+    incrementValue: 1000,
+    isActive: true,
+    createdAt: new Date(Date.now() - 89_000).toISOString(),
+    sortOrder: 1,
+    reminderEnabled: false,
+    reminderTimes: ['18:00'],
+  },
+  {
+    id: 'demo-habit-sleep',
+    goalId: 'demo-goal-health',
+    title: 'Sleep Before 11 PM',
+    category: 'Health',
+    type: 'boolean',
+    isActive: true,
+    createdAt: new Date(Date.now() - 88_000).toISOString(),
+    sortOrder: 2,
+    reminderEnabled: false,
+    reminderTimes: ['22:30'],
+  },
+  {
+    id: 'demo-habit-sugar',
+    goalId: 'demo-goal-health',
+    title: 'No Sugar',
+    category: 'Health',
+    type: 'boolean',
+    isActive: true,
+    createdAt: new Date(Date.now() - 87_000).toISOString(),
+    sortOrder: 3,
+    reminderEnabled: false,
+    reminderTimes: [],
+  },
+  {
+    id: 'demo-habit-read',
+    goalId: 'demo-goal-learning',
+    title: 'Read 20 Pages',
+    category: 'Learning',
+    type: 'quantitative',
+    target: 20,
+    unit: 'pages',
+    incrementValue: 5,
+    isActive: true,
+    createdAt: new Date(Date.now() - 86_000).toISOString(),
+    sortOrder: 4,
+    reminderEnabled: false,
+    reminderTimes: ['21:00'],
+  },
+  {
+    id: 'demo-habit-code',
+    goalId: 'demo-goal-learning',
+    title: 'Practice Coding',
+    category: 'Learning',
+    type: 'boolean',
+    isActive: true,
+    createdAt: new Date(Date.now() - 85_000).toISOString(),
+    sortOrder: 5,
+    reminderEnabled: false,
+    reminderTimes: [],
+  },
+  {
+    id: 'demo-habit-notes',
+    goalId: 'demo-goal-learning',
+    title: 'Review Notes',
+    category: 'Learning',
+    type: 'boolean',
+    isActive: true,
+    createdAt: new Date(Date.now() - 84_000).toISOString(),
+    sortOrder: 6,
+    reminderEnabled: false,
+    reminderTimes: [],
+  },
+  {
+    id: 'demo-habit-meditate',
+    goalId: 'demo-goal-mindfulness',
+    title: 'Morning Meditation',
+    category: 'Mindfulness',
+    type: 'boolean',
+    isActive: true,
+    createdAt: new Date(Date.now() - 83_000).toISOString(),
+    sortOrder: 7,
+    reminderEnabled: false,
+    reminderTimes: ['07:30'],
+  },
+  {
+    id: 'demo-habit-gratitude',
+    goalId: 'demo-goal-mindfulness',
+    title: 'Gratitude Journal',
+    category: 'Mindfulness',
+    type: 'boolean',
+    isActive: true,
+    createdAt: new Date(Date.now() - 82_000).toISOString(),
+    sortOrder: 8,
+    reminderEnabled: false,
+    reminderTimes: ['21:30'],
+  },
+];
+
+function getDemoHabitValue(habit: Habit, daysAgo: number): number | null {
+  if (daysAgo === 0) {
+    const todayValues: Record<string, number | null> = {
+      'demo-habit-water': 2,
+      'demo-habit-steps': 6500,
+      'demo-habit-sleep': 1,
+      'demo-habit-sugar': null,
+      'demo-habit-read': 10,
+      'demo-habit-code': 1,
+      'demo-habit-notes': null,
+      'demo-habit-meditate': 1,
+      'demo-habit-gratitude': 1,
+    };
+    return todayValues[habit.id] ?? null;
+  }
+
+  if (daysAgo >= 1 && daysAgo <= 3) return completeValueFor(habit);
+
+  if (daysAgo >= 4 && daysAgo <= 6) {
+    if (habit.goalId === 'demo-goal-health' || habit.goalId === 'demo-goal-learning') {
+      return completeValueFor(habit);
+    }
+    return daysAgo === 4 ? null : partialValueFor(habit);
+  }
+
+  if (daysAgo >= 7 && daysAgo <= 9) {
+    if (habit.goalId === 'demo-goal-health') return completeValueFor(habit);
+    if (habit.id === 'demo-habit-code' && daysAgo !== 8) return 1;
+    if (habit.id === 'demo-habit-read') return daysAgo === 8 ? null : partialValueFor(habit);
+    if (habit.id === 'demo-habit-meditate' && daysAgo === 9) return 1;
+    return null;
+  }
+
+  if (daysAgo === 10) {
+    if (habit.id === 'demo-habit-water') return partialValueFor(habit);
+    if (habit.id === 'demo-habit-steps') return completeValueFor(habit);
+    if (habit.id === 'demo-habit-sleep') return 1;
+    return daysAgo % 2 === 0 ? partialValueFor(habit) : null;
+  }
+
+  const cadence = (daysAgo * 7 + habit.sortOrder * 5) % 20;
+  const recentBoost = daysAgo < 30 ? 4 : daysAgo < 60 ? 2 : 0;
+  const score = cadence + recentBoost;
+
+  if (score >= 14) return completeValueFor(habit);
+  if (score >= 9) return partialValueFor(habit);
+  if (score >= 6 && habit.goalId === 'demo-goal-health') return partialValueFor(habit);
+  return null;
+}
+
+function completeValueFor(habit: Habit): number {
+  if (habit.type === 'boolean') return 1;
+  return habit.target ?? 1;
+}
+
+function partialValueFor(habit: Habit): number | null {
+  if (habit.type === 'boolean') return null;
+  return Math.max((habit.target ?? 1) * 0.55, habit.incrementValue ?? 1);
+}
+
+function buildDemoLogs(): DailyLog[] {
+  const logs: DailyLog[] = [];
+  for (let daysAgo = 0; daysAgo < 120; daysAgo++) {
+    const date = new Date();
+    date.setDate(date.getDate() - daysAgo);
+    const dateKey = toDateKey(date);
+
+    for (const habit of DEMO_HABITS) {
+      const value = getDemoHabitValue(habit, daysAgo);
+      if (value === null) continue;
+
+      const completedAt =
+        value >= (habit.target ?? 1)
+          ? new Date(date.getFullYear(), date.getMonth(), date.getDate(), 20, 30).toISOString()
+          : undefined;
+
+      logs.push({
+        id: `demo-log-${habit.id}-${dateKey}`,
+        habitId: habit.id,
+        date: dateKey,
+        value,
+        completedAt,
+      });
+    }
+  }
+  return logs;
+}
+
 // ─── Store Types ───────────────────────────────────────────────
 
 interface HabitState {
@@ -76,6 +312,7 @@ interface HabitState {
 
   // Hydration
   hydrate: () => Promise<void>;
+  seedDemoData: () => Promise<void>;
 
   // Goal actions
   addGoal: (title: string, focusArea: HabitCategory, emoji?: string, color?: string) => Promise<Goal>;
@@ -147,6 +384,77 @@ export const useHabitStore = create<HabitState>((set, get) => ({
     })) as Habit[];
 
     set({ goals, habits: parsedHabits, logs, isHydrated: true });
+  },
+
+  seedDemoData: async () => {
+    const database = await getDb();
+    const logs = buildDemoLogs();
+
+    await database.runAsync('DELETE FROM daily_logs');
+    await database.runAsync('DELETE FROM habits');
+    await database.runAsync('DELETE FROM goals');
+
+    for (const goal of DEMO_GOALS) {
+      await database.runAsync(
+        'INSERT INTO goals (id, title, focusArea, emoji, color, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
+        [goal.id, goal.title, goal.focusArea, goal.emoji ?? null, goal.color ?? null, goal.createdAt]
+      );
+    }
+
+    for (const habit of DEMO_HABITS) {
+      await database.runAsync(
+        `INSERT INTO habits (id, goalId, title, description, category, type, target, unit, incrementValue, isActive, createdAt, sortOrder, reminderEnabled, reminderTime)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          habit.id,
+          habit.goalId,
+          habit.title,
+          habit.description ?? null,
+          habit.category,
+          habit.type,
+          habit.target ?? null,
+          habit.unit ?? null,
+          habit.incrementValue ?? 1,
+          habit.isActive ? 1 : 0,
+          habit.createdAt,
+          habit.sortOrder,
+          habit.reminderEnabled ? 1 : 0,
+          JSON.stringify(habit.reminderTimes ?? []),
+        ]
+      );
+    }
+
+    for (const log of logs) {
+      await database.runAsync(
+        'INSERT INTO daily_logs (id, habitId, date, value, completedAt) VALUES (?, ?, ?, ?, ?)',
+        [log.id, log.habitId, log.date, log.value, log.completedAt ?? null]
+      );
+    }
+
+    storage.set('userName', 'Alex');
+    storage.set('hasOnboarded', true);
+    storage.set('remindersEnabled', false);
+
+    const hydratedGoals = await database.getAllAsync<Goal>('SELECT * FROM goals ORDER BY createdAt DESC');
+    const hydratedHabits = await database.getAllAsync<Habit>(
+      'SELECT *, CAST(isActive AS INTEGER) as isActive, CAST(reminderEnabled AS INTEGER) as reminderEnabled FROM habits ORDER BY sortOrder ASC'
+    );
+    const hydratedLogs = await database.getAllAsync<DailyLog>(
+      'SELECT * FROM daily_logs ORDER BY date DESC LIMIT 1000'
+    );
+    const parsedHabits = hydratedHabits.map((h: any) => ({
+      ...h,
+      isActive: Boolean(h.isActive),
+      reminderEnabled: Boolean(h.reminderEnabled),
+      reminderTimes: h.reminderTime ? JSON.parse(h.reminderTime) : [],
+    })) as Habit[];
+
+    set({
+      goals: hydratedGoals,
+      habits: parsedHabits,
+      logs: hydratedLogs,
+      isHydrated: true,
+    });
   },
 
   addGoal: async (title, focusArea, emoji, color) => {

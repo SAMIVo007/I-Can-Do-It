@@ -7,6 +7,7 @@ import { Body, Heading } from "@/components/ui/typography";
 import { Fonts, Spacing } from "@/constants/theme";
 import { useAppColors } from "@/hooks/use-app-colors";
 import { useStorage } from "@/hooks/use-storage";
+import { useHabitStore } from "@/stores/habit-store";
 import {
 	cancelAllReminders,
 	requestNotificationPermissions,
@@ -29,10 +30,14 @@ export default function SettingsScreen() {
 	const [hapticsEnabled, setHapticsEnabled] = useStorage("hapticsEnabled", true);
 
 	const [appTheme, setAppTheme] = useStorage<"system" | "light" | "dark">("appTheme", "system");
+	const seedDemoData = useHabitStore((s) => s.seedDemoData);
 
 	// Dialogs
 	const [permDialogVisible, setPermDialogVisible] = useState(false);
 	const [resetDialogVisible, setResetDialogVisible] = useState(false);
+	const [demoDialogVisible, setDemoDialogVisible] = useState(false);
+	const [demoLoadedVisible, setDemoLoadedVisible] = useState(false);
+	const [isSeedingDemo, setIsSeedingDemo] = useState(false);
 
 	const handleToggleReminders = async (value: boolean) => {
 		if (value) {
@@ -51,6 +56,16 @@ export default function SettingsScreen() {
 		const themes: ("system" | "light" | "dark")[] = ["system", "light", "dark"];
 		const nextIndex = (themes.indexOf(appTheme) + 1) % themes.length;
 		setAppTheme(themes[nextIndex]);
+	};
+
+	const handleSeedDemoData = async () => {
+		setIsSeedingDemo(true);
+		try {
+			await seedDemoData();
+			setDemoLoadedVisible(true);
+		} finally {
+			setIsSeedingDemo(false);
+		}
 	};
 
 	return (
@@ -171,6 +186,17 @@ export default function SettingsScreen() {
 			<Animated.View entering={FadeInDown.duration(400).delay(250)}>
 				<SettingsGroup label="More">
 					<SettingsRow
+						label="Load Demo Data"
+						icon={{ ios: "sparkles", android: "auto_awesome", web: "auto_awesome" }}
+						onPress={() => setDemoDialogVisible(true)}
+						trailing={
+							<View style={{ flexDirection: "row", alignItems: "center", gap: Spacing.xs }}>
+								<Body secondary>{isSeedingDemo ? "Loading..." : "Refresh"}</Body>
+								<SettingsChevron />
+							</View>
+						}
+					/>
+					<SettingsRow
 						label="Send Feedback"
 						icon={{ ios: "paperplane", android: "send", web: "send" }}
 						onPress={() => { }} // Mock
@@ -193,6 +219,25 @@ export default function SettingsScreen() {
 				confirmLabel="OK"
 				onConfirm={() => { }}
 				onDismiss={() => setPermDialogVisible(false)}
+			/>
+
+			<ConfirmDialog
+				visible={demoDialogVisible}
+				title="Load Demo Data?"
+				message="This replaces your current goals, habits, and logs with a polished sample dataset for judging and screen recordings."
+				confirmLabel={isSeedingDemo ? "Loading..." : "Load Demo"}
+				onConfirm={handleSeedDemoData}
+				cancelLabel="Cancel"
+				onDismiss={() => setDemoDialogVisible(false)}
+			/>
+
+			<ConfirmDialog
+				visible={demoLoadedVisible}
+				title="Demo Data Ready"
+				message="Alex's goals, habits, streaks, charts, and heatmap are ready for the demo."
+				confirmLabel="OK"
+				onConfirm={() => { }}
+				onDismiss={() => setDemoLoadedVisible(false)}
 			/>
 
 			{/* Confirm: reset all data */}

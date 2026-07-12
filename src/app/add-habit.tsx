@@ -39,6 +39,7 @@ export default function AddHabitScreen() {
 
 	const [selectedGoalId, setSelectedGoalId] = useState<string>(defaultGoalId);
 	const selectedGoal = goals.find((g) => g.id === selectedGoalId);
+	const accentColor = String(Colors.accent);
 
 	const [title, setTitle] = useState(editHabit?.title ?? "");
 	const [habitType, setHabitType] = useState<HabitType>(editHabit?.type ?? "boolean");
@@ -436,8 +437,8 @@ export default function AddHabitScreen() {
 											flexDirection: "row",
 											alignItems: "center",
 											gap: Spacing.xs,
-											backgroundColor: Colors.accent + "1A",
-											borderColor: Colors.accent + "40",
+											backgroundColor: accentColor + "1A",
+											borderColor: accentColor + "40",
 											borderWidth: 1,
 											paddingVertical: Spacing.xs,
 											paddingHorizontal: Spacing.sm,
