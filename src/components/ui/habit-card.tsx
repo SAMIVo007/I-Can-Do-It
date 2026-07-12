@@ -13,7 +13,7 @@ import { useAppColors } from "@/hooks/use-app-colors";
 import type { DailyLog, Habit } from "@/types/models";
 import { getProgress, isHabitComplete } from "@/types/models";
 import { SymbolView } from "expo-symbols";
-import { Pressable, View, type ViewStyle } from "react-native";
+import { Pressable, View, type GestureResponderEvent, type ViewStyle } from "react-native";
 
 interface HabitCardProps {
 	habit: Habit;
@@ -44,68 +44,87 @@ export function HabitCard({
 
 	return (
 		<View style={{ borderRadius: Radii.lg, overflow: "hidden" }}>
+			{/* The background that captures touches for the card */}
 			<Pressable
 				onPress={onPress}
 				onLongPress={onLongPress}
 				unstable_pressDelay={100}
 				style={({ pressed }) => [
 					{
-						flexDirection: "row",
-						alignItems: "center",
+						position: 'absolute',
+						top: 0,
+						left: 0,
+						right: 0,
+						bottom: 0,
 						backgroundColor: Colors.surface,
 						borderRadius: Radii.lg,
 						borderCurve: "continuous",
-						padding: Spacing.lg,
-						gap: Spacing.md,
 						opacity: pressed ? 0.9 : 1,
-						transform: [{ scale: pressed ? 0.99 : 1 }],
 					} satisfies ViewStyle,
 				]}
 				android_ripple={{
 					foreground: true,
 					color: Colors.border,
 				}}
+			/>
+
+			{/* The foreground content, with box-none so touches pass through to the background EXCEPT on interactive children */}
+			<View
+				pointerEvents="box-none"
+				style={{
+					flexDirection: "row",
+					alignItems: "center",
+					padding: Spacing.lg,
+					gap: Spacing.md,
+				}}
 			>
 				{/* Checkbox or Increment */}
 				{habit.type === "boolean" ? (
-					<Checkbox checked={completed} onToggle={onToggle} />
+					<View pointerEvents="auto">
+						<Checkbox checked={completed} onToggle={onToggle} />
+					</View>
 				) : (
-					<Pressable
-						onPress={() => onIncrement?.(habit.incrementValue || 1)}
-						unstable_pressDelay={100}
-						style={({ pressed }) => ({
-							minWidth: 30,
-							height: 30,
-							paddingHorizontal: Spacing.xs,
-							borderRadius: 16,
-							backgroundColor: completed ? Colors.success : Colors.background,
-							borderWidth: completed ? 0 : 1,
-							borderColor: Colors.border,
-							alignItems: "center",
-							justifyContent: "center",
-							opacity: pressed ? 0.7 : 1,
-							zIndex: 2
-						})}
-						android_ripple={{ borderless: true, radius: 80, foreground: true, color: Colors.accent }}
-						hitSlop={20}
-					>
-						{completed ? (
-							<SymbolView
-								name={{ ios: "checkmark", android: "check", web: "check" }}
-								size={20}
-								tintColor={Colors.white}
-								fallback={<Body style={{ color: Colors.white, fontSize: 18 }}>✓</Body>}
-							/>
-						) : (
-							<Body size="sm" weight="medium" style={{ color: Colors.textPrimary }}>
-								+{habit.incrementValue || 1}
-							</Body>
-						)}
-					</Pressable>
+					<View pointerEvents="auto">
+						<Pressable
+							onPress={(event: GestureResponderEvent) => {
+								event.stopPropagation();
+								onIncrement?.(habit.incrementValue || 1);
+							}}
+							unstable_pressDelay={100}
+							style={({ pressed }) => ({
+								minWidth: 30,
+								height: 30,
+								paddingHorizontal: Spacing.xs,
+								borderRadius: 16,
+								backgroundColor: completed ? Colors.success : Colors.background,
+								borderWidth: completed ? 0 : 1,
+								borderColor: Colors.border,
+								alignItems: "center",
+								justifyContent: "center",
+								opacity: pressed ? 0.7 : 1,
+								zIndex: 2
+							})}
+							android_ripple={{ borderless: true, radius: 80, foreground: true, color: Colors.accent }}
+							hitSlop={20}
+						>
+							{completed ? (
+								<SymbolView
+									name={{ ios: "checkmark", android: "check", web: "check" }}
+									size={20}
+									tintColor={Colors.white}
+									fallback={<Body style={{ color: Colors.white, fontSize: 18 }}>✓</Body>}
+								/>
+							) : (
+								<Body size="sm" weight="medium" style={{ color: Colors.textPrimary }}>
+									+{habit.incrementValue || 1}
+								</Body>
+							)}
+						</Pressable>
+					</View>
 				)}
 
 				{/* Content */}
-				<View style={{ flex: 1, gap: Spacing.xs } satisfies ViewStyle}>
+				<View style={{ flex: 1, gap: Spacing.xs }} pointerEvents="none">
 					<Body
 						weight={completed ? "light" : "medium"}
 						dimmed={completed}
@@ -140,8 +159,10 @@ export function HabitCard({
 				</View>
 
 				{/* Category pill */}
-				<CategoryPill label={categoryLabel ?? habit.category} compact />
-			</Pressable>
+				<View pointerEvents="none">
+					<CategoryPill label={categoryLabel ?? habit.category} compact />
+				</View>
+			</View>
 		</View>
 	);
 }

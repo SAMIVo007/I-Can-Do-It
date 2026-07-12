@@ -7,17 +7,19 @@ import React, { useState } from 'react';
 import { View, ScrollView, Switch, ActivityIndicator, type ViewStyle } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router } from 'expo-router';
-import { Colors, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { Heading, Body } from '@/components/ui/typography';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useOnboardingStore } from '@/stores/onboarding-store';
 import { useHabitStore } from '@/stores/habit-store';
+import { useAppColors } from '@/hooks/use-app-colors';
 import { storage } from '@/utils/storage';
 import { requestNotificationPermissions } from '@/utils/notifications';
 
 export default function OnboardingScheduleScreen() {
+  const Colors = useAppColors();
   const { userName, goalTitle, focusArea, selectedHabits, reset } = useOnboardingStore();
   const { addGoal, addHabit } = useHabitStore();
   const [enableReminders, setEnableReminders] = useState(true);
@@ -223,6 +225,7 @@ export default function OnboardingScheduleScreen() {
 }
 
 function StepDot({ active }: { active?: boolean }) {
+  const Colors = useAppColors();
   return (
     <View
       style={{

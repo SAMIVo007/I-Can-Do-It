@@ -9,13 +9,15 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
-import { Colors, Spacing, Radii } from '@/constants/theme';
+import { Spacing, Radii } from '@/constants/theme';
 import { Heading, Body } from '@/components/ui/typography';
 import { Button } from '@/components/ui/button';
 import { TextInput } from '@/components/ui/text-input';
 import { useOnboardingStore, SUGGESTED_HABITS } from '@/stores/onboarding-store';
+import { useAppColors } from '@/hooks/use-app-colors';
 
 export default function OnboardingHabitsScreen() {
+  const Colors = useAppColors();
   const { goalTitle, focusArea, selectedHabits, toggleHabit, addCustomHabit } = useOnboardingStore();
   const [customHabitTitle, setCustomHabitTitle] = useState('');
   const [showCustom, setShowCustom] = useState(false);
@@ -184,6 +186,7 @@ export default function OnboardingHabitsScreen() {
 }
 
 function StepDot({ active }: { active?: boolean }) {
+  const Colors = useAppColors();
   return (
     <View
       style={{

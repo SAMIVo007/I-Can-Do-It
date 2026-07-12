@@ -6,7 +6,7 @@
 import { useAppColors } from "@/hooks/use-app-colors";
 import { SymbolView } from "expo-symbols";
 import React from "react";
-import { Pressable, type ViewStyle } from "react-native";
+import { Pressable, type GestureResponderEvent, type ViewStyle } from "react-native";
 import Animated, {
 	FadeIn,
 	useAnimatedStyle,
@@ -27,7 +27,16 @@ export function Checkbox({ checked, onToggle, size = 30 }: CheckboxProps) {
 	}));
 
 	return (
-		<Pressable onPress={onToggle} hitSlop={8}>
+		<Pressable
+			onPressIn={(event: GestureResponderEvent) => {
+				event.stopPropagation();
+			}}
+			onPress={(event: GestureResponderEvent) => {
+				event.stopPropagation();
+				onToggle();
+			}}
+			hitSlop={20}
+		>
 			<Animated.View
 				style={{
 					width: size,

@@ -24,6 +24,11 @@ export const storage = {
     listeners.get(key)?.forEach((fn) => fn());
   },
 
+  clearAll(): void {
+    localStorage.clear();
+    listeners.forEach((fns) => fns.forEach((fn) => fn()));
+  },
+
   subscribe(key: string, listener: Listener): () => void {
     if (!listeners.has(key)) listeners.set(key, new Set());
     listeners.get(key)!.add(listener);

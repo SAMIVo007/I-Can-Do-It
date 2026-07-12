@@ -1,27 +1,33 @@
+import { Colors } from '@/constants/theme';
 import { BottomSheet, Group, Host, RNHostView } from '@expo/ui/swift-ui';
-import { presentationDetents, presentationDragIndicator } from '@expo/ui/swift-ui/modifiers';
+import { presentationBackground, presentationDragIndicator, presentationDetents } from '@expo/ui/swift-ui/modifiers';
 import React from 'react';
+import { Dimensions } from 'react-native';
 
 export interface NativeBottomSheetProps {
   isOpen: boolean;
   onClosed: () => void;
   children: React.ReactNode;
+  height?: number;
 }
 
-export function NativeBottomSheet({ isOpen, onClosed, children }: NativeBottomSheetProps) {
+export function NativeBottomSheet({ isOpen, onClosed, children, height }: NativeBottomSheetProps) {
+  const screenHeight = Dimensions.get('window').height;
+  
   return (
     <Host style={{ flex: 1 }}>
-      <BottomSheet 
-        isPresented={isOpen} 
+      <BottomSheet
+        isPresented={isOpen}
         onIsPresentedChange={(val) => {
           if (!val) onClosed();
         }}
       >
         <Group modifiers={[
-          presentationDetents(['medium', 'large']),
+          presentationDetents(height ? [{ height: Math.min(height, screenHeight * 0.9) }] : ['medium', 'large']),
+          presentationBackground(Colors.background as string),
           presentationDragIndicator('visible')
         ]}>
-          <RNHostView matchContents>
+          <RNHostView>
             {children as any}
           </RNHostView>
         </Group>

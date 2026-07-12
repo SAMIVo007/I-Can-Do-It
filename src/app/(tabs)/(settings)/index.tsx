@@ -31,6 +31,7 @@ export default function SettingsScreen() {
 
 	const [appTheme, setAppTheme] = useStorage<"system" | "light" | "dark">("appTheme", "system");
 	const seedDemoData = useHabitStore((s) => s.seedDemoData);
+	const resetAllData = useHabitStore((s) => s.resetAllData);
 
 	// Dialogs
 	const [permDialogVisible, setPermDialogVisible] = useState(false);
@@ -240,14 +241,16 @@ export default function SettingsScreen() {
 				onDismiss={() => setDemoLoadedVisible(false)}
 			/>
 
-			{/* Confirm: reset all data */}
 			<ConfirmDialog
 				visible={resetDialogVisible}
 				title="Reset All Data"
 				message="This will permanently delete all your goals, habits, and progress. Are you sure?"
 				confirmLabel="Delete"
 				confirmDestructive
-				onConfirm={() => { }}
+				onConfirm={async () => {
+					await resetAllData();
+					setResetDialogVisible(false);
+				}}
 				cancelLabel="Cancel"
 				onDismiss={() => setResetDialogVisible(false)}
 			/>

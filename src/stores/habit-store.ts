@@ -313,6 +313,7 @@ interface HabitState {
   // Hydration
   hydrate: () => Promise<void>;
   seedDemoData: () => Promise<void>;
+  resetAllData: () => Promise<void>;
 
   // Goal actions
   addGoal: (title: string, focusArea: HabitCategory, emoji?: string, color?: string) => Promise<Goal>;
@@ -384,6 +385,15 @@ export const useHabitStore = create<HabitState>((set, get) => ({
     })) as Habit[];
 
     set({ goals, habits: parsedHabits, logs, isHydrated: true });
+  },
+
+  resetAllData: async () => {
+    const database = await getDb();
+    await database.runAsync('DELETE FROM daily_logs');
+    await database.runAsync('DELETE FROM habits');
+    await database.runAsync('DELETE FROM goals');
+    storage.clearAll();
+    set({ goals: [], habits: [], logs: [] });
   },
 
   seedDemoData: async () => {

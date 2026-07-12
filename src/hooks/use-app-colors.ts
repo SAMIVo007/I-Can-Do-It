@@ -10,7 +10,7 @@
  */
 
 import { Colors, LightColors, DarkColors } from '@/constants/theme';
-import { useColorScheme, AppState } from 'react-native';
+import { useColorScheme, AppState, Platform } from 'react-native';
 import { useEffect, useState } from 'react';
 import { storage } from '@/utils/storage';
 

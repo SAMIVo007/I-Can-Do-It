@@ -144,14 +144,17 @@ export default function AddHabitScreen() {
 		router.back();
 	};
 
+	const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
+
 	return (
 		<View style={{ flex: 1 }}>
-			<NativeBottomSheet isOpen={isOpen} onClosed={handleClose}>
+			<NativeBottomSheet isOpen={isOpen} onClosed={handleClose} height={contentHeight}>
 				<ScrollView
+					onContentSizeChange={(_w, h) => setContentHeight(h + 40)}
+					style={{ backgroundColor: Colors.background }}
 					contentContainerStyle={{
 						padding: Spacing.xl,
 						gap: Spacing.xl,
-						backgroundColor: Colors.background,
 					}}
 					showsVerticalScrollIndicator={false}
 					keyboardShouldPersistTaps="handled"

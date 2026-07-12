@@ -3,13 +3,14 @@ import { Fonts, Spacing } from "@/constants/theme";
 import { useAppColors } from "@/hooks/use-app-colors";
 import { useTheme } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { Pressable, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 import Animated, {
 	SharedValue,
 	useAnimatedStyle,
 	withSpring,
 	withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface FABProps {
 	onPress: () => void;
@@ -23,10 +24,14 @@ interface FABProps {
 export function FAB({ onPress, isExpanded, label = "Add Habit", expandedWidth = 148 }: FABProps) {
 	const Colors = useAppColors();
 	const theme = useTheme();
+	const insets = useSafeAreaInsets();
+	const isIOS = Platform.OS === "ios";
+	const bottomOffset = isIOS ? insets.bottom + 76 : Spacing.xxxl;
+	const height = isIOS ? 52 : 56;
 
 	const animatedStyle = useAnimatedStyle(() => {
 		return {
-			width: withSpring(isExpanded.value === 1 ? expandedWidth : 56, {
+			width: withSpring(isExpanded.value === 1 ? expandedWidth : height, {
 				damping: 10,
 				stiffness: 150,
 				mass: 0.3,
@@ -47,18 +52,18 @@ export function FAB({ onPress, isExpanded, label = "Add Habit", expandedWidth = 
 			style={[
 				{
 					position: "absolute",
-					bottom: Spacing.xxxl,
+					bottom: bottomOffset,
 					right: Spacing.xl,
-					height: 56,
-					borderRadius: 16,
+					height,
+					borderRadius: isIOS ? height / 2 : 16,
 					backgroundColor: Colors.accent,
 					overflow: "hidden",
-					elevation: 10,
+					elevation: isIOS ? 0 : 10,
 					zIndex: 10,
 					shadowColor: "#000",
 					shadowOffset: { width: 0, height: 4 },
-					shadowOpacity: 0.15,
-					shadowRadius: 12,
+					shadowOpacity: isIOS ? 0.12 : 0.15,
+					shadowRadius: isIOS ? 16 : 12,
 				},
 				animatedStyle,
 			]}
@@ -69,12 +74,11 @@ export function FAB({ onPress, isExpanded, label = "Add Habit", expandedWidth = 
 					flex: 1,
 					flexDirection: "row",
 					alignItems: "center",
-					justifyContent: "flex-start",
-					paddingLeft: 16,
+					justifyContent: "center",
 				}}
 				android_ripple={{ color: theme.dark ? Colors.border : Colors.surface }}
 			>
-				<View style={{ alignItems: "center" }}>
+				<View style={{ alignItems: "center", justifyContent: "center" }}>
 					<SymbolView
 						name={{ ios: "plus", android: "add", web: "add" }}
 						size={24}

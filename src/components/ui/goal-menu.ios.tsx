@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useHabitStore } from '@/stores/habit-store';
-import { Host, Menu, Button, Divider, RNHostView } from '@expo/ui/swift-ui';
+import { Host, Menu, ContextMenu, Button, Divider, RNHostView } from '@expo/ui/swift-ui';
 import React, { isValidElement, cloneElement, useState } from 'react';
 import { ConfirmDialog } from './confirm-dialog';
 
@@ -32,21 +32,36 @@ export function GoalMenu({ goalId, children, isIcon }: GoalMenuProps) {
   };
 
   const trigger = isValidElement(children) && !isIcon
-    ? cloneElement(children as React.ReactElement<any>, { onPress: undefined, onLongPress: undefined })
+    ? cloneElement(children as React.ReactElement<any>, {
+        onPress: () => router.push(`/goal/${goalId}` as any),
+      })
     : children;
 
   return (
     <>
-      <Host matchContents>
-        <Menu
-          label={<RNHostView matchContents>{trigger as any}</RNHostView>}
-          onPrimaryAction={isIcon ? undefined : () => router.push(`/goal/${goalId}` as any)}
-        >
-          <Button label="Edit Goal" systemImage="pencil" onPress={() => router.push(`/add-goal?id=${goalId}` as any)} />
-          <Divider />
-          <Button label="Delete Goal" role="destructive" systemImage="trash" onPress={() => setDialogVisible(true)} />
-        </Menu>
-      </Host>
+      {isIcon ? (
+        <Host matchContents>
+          <Menu
+            label={<RNHostView matchContents>{trigger as any}</RNHostView>}
+          >
+            <Button label="Edit Goal" systemImage="pencil" onPress={() => router.push(`/add-goal?id=${goalId}` as any)} />
+            <Divider />
+            <Button label="Delete Goal" role="destructive" systemImage="trash" onPress={() => setDialogVisible(true)} />
+          </Menu>
+        </Host>
+      ) : (
+        <Host matchContents>
+          <ContextMenu>
+            <ContextMenu.Items>
+              <Button label="Edit Goal" systemImage="pencil" onPress={() => router.push(`/add-goal?id=${goalId}` as any)} />
+              <Button label="Delete Goal" role="destructive" systemImage="trash" onPress={() => setDialogVisible(true)} />
+            </ContextMenu.Items>
+            <ContextMenu.Trigger>
+              <RNHostView matchContents>{trigger as any}</RNHostView>
+            </ContextMenu.Trigger>
+          </ContextMenu>
+        </Host>
+      )}
 
       <ConfirmDialog
         visible={dialogVisible}
