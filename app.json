@@ -42,6 +42,13 @@
           }
         }
       ],
+      [
+        "expo-notifications",
+        {
+          "color": "#6B9E9E",
+          "defaultChannel": "habit-reminders"
+        }
+      ],
       "expo-sqlite",
       "expo-image",
       "expo-web-browser",
