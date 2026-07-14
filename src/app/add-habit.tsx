@@ -15,11 +15,12 @@ import { useHabitStore } from "@/stores/habit-store";
 import type { HabitCategory, HabitType } from "@/types/models";
 import { TimePicker } from "@/components/ui/time-picker";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+	Platform,
 	Pressable,
-	TextInput as RNTextInput,
 	ScrollView,
+	TextInput as RNTextInput,
 	View,
 	type ViewStyle
 } from "react-native";
@@ -150,14 +151,21 @@ export default function AddHabitScreen() {
 		<View style={{ flex: 1 }}>
 			<NativeBottomSheet isOpen={isOpen} onClosed={handleClose} height={contentHeight}>
 				<ScrollView
-					onContentSizeChange={(_w, h) => setContentHeight(h + 40)}
+					onContentSizeChange={(_w, h) => {
+						// iOS only: drives SwiftUI presentationDetents.
+						// On Android this setState re-renders the Compose RNHostView
+						// and steals TextInput focus / kills the keyboard.
+						if (Platform.OS !== "ios") return;
+						const next = h + 40;
+						setContentHeight((prev) => (prev === next ? prev : next));
+					}}
 					style={{ backgroundColor: Colors.background }}
 					contentContainerStyle={{
 						padding: Spacing.xl,
 						gap: Spacing.xl,
 					}}
 					showsVerticalScrollIndicator={false}
-					keyboardShouldPersistTaps="handled"
+					keyboardShouldPersistTaps="always"
 				>
 					{/* Header */}
 					<View

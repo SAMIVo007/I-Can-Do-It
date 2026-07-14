@@ -81,6 +81,8 @@ export function buildHabitNotificationContent(
     },
     categoryIdentifier: HABIT_REMINDER_CATEGORY,
     sound: true,
+    // Android: remove from the tray when the user taps the notification body.
+    autoDismiss: true,
     ...overrides,
   };
 }
@@ -106,24 +108,30 @@ export async function ensureNotificationCategory(): Promise<void> {
       identifier: HABIT_ACTION.MARK_DONE,
       buttonTitle: "Mark done",
       options: {
-        // Keep false so user can complete from the shade; when the app is
-        // killed the response is delivered on next launch via last response.
-        opensAppToForeground: false,
+        // Must be true: with false, a killed/background app never starts JS,
+        // so Mark done / Snooze never run and dismissNotificationAsync never
+        // fires (notification stays in the tray). Foregrounding briefly is
+        // how expo-notifications delivers the response to our listener.
+        opensAppToForeground: true,
       },
     },
     {
       identifier: HABIT_ACTION.SNOOZE_1H,
       buttonTitle: "Remind in 1h",
       options: {
-        opensAppToForeground: false,
+        opensAppToForeground: true,
       },
     },
   ]);
 }
 
+let _prepared = false;
+
 export async function prepareNotifications(): Promise<void> {
+  if (_prepared) return;
   await ensureNotificationChannel();
   await ensureNotificationCategory();
+  _prepared = true;
 }
 
 /** Request notification permissions. Returns true if granted. */

@@ -5,6 +5,8 @@ export interface NativeBottomSheetProps {
   isOpen: boolean;
   onClosed: () => void;
   children: React.ReactNode;
+  /** iOS-only presentation detent; ignored on Android/web. */
+  height?: number;
 }
 
 export function NativeBottomSheet({ isOpen, onClosed, children }: NativeBottomSheetProps) {

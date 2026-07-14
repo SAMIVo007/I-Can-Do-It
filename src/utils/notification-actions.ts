@@ -30,6 +30,35 @@ function markHandled(response: Notifications.NotificationResponse): void {
   storage.set("lastHandledNotificationResponse", responseKey(response));
 }
 
+/** Remove the presented notification (and any other tray banners for that habit). */
+async function dismissPresentedHabitNotification(
+  identifier: string,
+  habitId: string,
+): Promise<void> {
+  try {
+    await Notifications.dismissNotificationAsync(identifier);
+  } catch {
+    // Already dismissed / platform quirk.
+  }
+
+  try {
+    const presented = await Notifications.getPresentedNotificationsAsync();
+    await Promise.all(
+      presented
+        .filter(
+          (n) =>
+            n.request.identifier === identifier ||
+            n.request.content.data?.habitId === habitId,
+        )
+        .map((n) =>
+          Notifications.dismissNotificationAsync(n.request.identifier),
+        ),
+    );
+  } catch {
+    // Presented-list APIs can fail on some platforms; ignore.
+  }
+}
+
 /** Mark a habit complete for today from a notification action (idempotent). */
 export async function completeHabitFromNotification(
   habitId: string,
@@ -80,13 +109,10 @@ export async function handleNotificationResponse(
   if (action === HABIT_ACTION.MARK_DONE) {
     await completeHabitFromNotification(habitId);
     markHandled(response);
-    try {
-      await Notifications.dismissNotificationAsync(
-        response.notification.request.identifier,
-      );
-    } catch {
-      // Already dismissed / platform quirk.
-    }
+    await dismissPresentedHabitNotification(
+      response.notification.request.identifier,
+      habitId,
+    );
     return { shouldOpenHabit: false };
   }
 
@@ -100,13 +126,10 @@ export async function handleNotificationResponse(
       await snoozeHabitReminder(habit);
     }
     markHandled(response);
-    try {
-      await Notifications.dismissNotificationAsync(
-        response.notification.request.identifier,
-      );
-    } catch {
-      // Already dismissed / platform quirk.
-    }
+    await dismissPresentedHabitNotification(
+      response.notification.request.identifier,
+      habitId,
+    );
     return { shouldOpenHabit: false };
   }
 

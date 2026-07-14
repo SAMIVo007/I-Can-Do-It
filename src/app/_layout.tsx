@@ -23,7 +23,7 @@ import * as Notifications from "expo-notifications";
 import { DefaultTheme, ThemeProvider, router } from "expo-router";
 import { Stack } from "expo-router/stack";
 import * as SplashScreen from "expo-splash-screen";
-import { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useColorScheme, Appearance, Platform } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { handleNotificationResponse } from "@/utils/notification-actions";

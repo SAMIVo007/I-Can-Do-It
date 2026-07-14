@@ -381,6 +381,7 @@ interface HabitState {
     unit?: string;
     incrementValue?: number;
     reminderTimes?: string[];
+    skipSchedule?: boolean;
   }) => Promise<Habit>;
   updateHabit: (id: string, updates: Partial<Habit>) => Promise<void>;
   deleteHabit: (id: string) => Promise<void>;
@@ -434,12 +435,10 @@ export const useHabitStore = create<HabitState>((set, get) => ({
 
     set({ goals, habits: parsedHabits, logs, isHydrated: true });
 
-    // Rebuild local schedules from persisted habits (source of truth).
-    try {
-      await syncAllHabitReminders(parsedHabits);
-    } catch (error) {
+    // Rebuild local schedules in the background — don't block UI hydration.
+    syncAllHabitReminders(parsedHabits).catch((error) => {
       console.warn("Failed to sync habit reminders on hydrate:", error);
-    }
+    });
   },
 
   resetAllData: async () => {
@@ -667,7 +666,9 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       ],
     );
     set((s) => ({ habits: [...s.habits, habit] }));
-    await scheduleHabitReminders(habit);
+    if (!params.skipSchedule) {
+      await scheduleHabitReminders(habit);
+    }
     return habit;
   },
 
@@ -716,9 +717,17 @@ export const useHabitStore = create<HabitState>((set, get) => ({
       ),
     }));
 
-    const updated = get().habits.find((h) => h.id === id);
-    if (updated) {
-      await scheduleHabitReminders(updated);
+    const needsReschedule =
+      normalizedUpdates.reminderTimes !== undefined ||
+      normalizedUpdates.reminderEnabled !== undefined ||
+      normalizedUpdates.isActive !== undefined ||
+      normalizedUpdates.title !== undefined;
+
+    if (needsReschedule) {
+      const updated = get().habits.find((h) => h.id === id);
+      if (updated) {
+        await scheduleHabitReminders(updated);
+      }
     }
   },
 

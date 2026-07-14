@@ -56,7 +56,8 @@ export default function OnboardingScheduleScreen() {
       // Create goal
       const goal = await addGoal(goalTitle, focusArea ?? "Custom");
 
-      // Create habits — default morning reminder when reminders are on
+      // Create habits — default morning reminder when reminders are on.
+      // skipSchedule: true since we batch-schedule via syncAllHabitReminders below.
       const createdHabits = [];
       for (const habit of selectedHabits) {
         const created = await addHabit({
@@ -67,6 +68,7 @@ export default function OnboardingScheduleScreen() {
           target: habit.target,
           unit: habit.unit,
           reminderTimes: remindersOn ? [DEFAULT_REMINDER_TIME] : [],
+          skipSchedule: true,
         });
         createdHabits.push(created);
       }

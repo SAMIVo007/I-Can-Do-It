@@ -109,7 +109,7 @@ export default function AddGoalScreen() {
 						backgroundColor: Colors.background,
 					}}
 					showsVerticalScrollIndicator={false}
-					keyboardShouldPersistTaps="handled"
+					keyboardShouldPersistTaps="always"
 				>
 					{/* Header */}
 					<Heading>{isEdit ? "Edit Goal" : "New Goal"}</Heading>
