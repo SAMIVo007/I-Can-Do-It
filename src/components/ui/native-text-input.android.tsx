@@ -13,7 +13,13 @@
  * match the forced app colors.
  */
 
-import { DarkColors, Fonts, FontSizes, LightColors, Spacing } from "@/constants/theme";
+import {
+  DarkColors,
+  Fonts,
+  FontSizes,
+  LightColors,
+  Spacing,
+} from "@/constants/theme";
 import { storage } from "@/utils/storage";
 import {
   BasicTextField,
@@ -148,7 +154,10 @@ export const NativeTextInput = forwardRef<TextInputHandle, AppTextInputProps>(
         >
           <BasicTextField.DecorationBox>
             <Column
-              modifiers={[fillMaxWidth(), padding(0, Spacing.md, 0, Spacing.sm)]}
+              modifiers={[
+                fillMaxWidth(),
+                padding(0, Spacing.md, 0, Spacing.sm),
+              ]}
             >
               <Text
                 color={labelColor}
@@ -157,7 +166,10 @@ export const NativeTextInput = forwardRef<TextInputHandle, AppTextInputProps>(
                 {label}
               </Text>
               <Box
-                modifiers={[fillMaxWidth(), padding(0, Spacing.xs, 0, Spacing.sm)]}
+                modifiers={[
+                  fillMaxWidth(),
+                  padding(0, Spacing.xs, 0, Spacing.sm),
+                ]}
               >
                 {placeholder ? (
                   <BasicTextField.Placeholder>

@@ -5,7 +5,10 @@
  */
 
 import { Button } from "@/components/ui/button";
-import { NativeBottomSheet } from "@/components/ui/native-bottom-sheet";
+import {
+  BottomSheetScrollView,
+  NativeBottomSheet,
+} from "@/components/ui/native-bottom-sheet";
 import { NativeTextInput } from "@/components/ui/native-text-input";
 import { Body, Heading } from "@/components/ui/typography";
 import { Radii, Spacing } from "@/constants/theme";
@@ -14,7 +17,7 @@ import { useHabitStore } from "@/stores/habit-store";
 import type { HabitCategory } from "@/types/models";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, ScrollView, View, type ViewStyle } from "react-native";
+import { Pressable, View, type ViewStyle } from "react-native";
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -109,14 +112,12 @@ export default function AddGoalScreen() {
   return (
     <View style={{ flex: 1 }}>
       <NativeBottomSheet isOpen={isOpen} onClosed={handleClose}>
-        <ScrollView
+        <BottomSheetScrollView
           contentContainerStyle={{
             padding: Spacing.xl,
             gap: Spacing.xl,
             backgroundColor: Colors.background,
           }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
           <Heading>{isEdit ? "Edit Goal" : "New Goal"}</Heading>
@@ -304,7 +305,7 @@ export default function AddGoalScreen() {
             size="lg"
             fullWidth
           />
-        </ScrollView>
+        </BottomSheetScrollView>
       </NativeBottomSheet>
     </View>
   );

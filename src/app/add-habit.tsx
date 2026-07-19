@@ -5,7 +5,10 @@
 import { GOAL_COLORS } from "@/app/add-goal";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { NativeBottomSheet } from "@/components/ui/native-bottom-sheet";
+import {
+  BottomSheetScrollView,
+  NativeBottomSheet,
+} from "@/components/ui/native-bottom-sheet";
 import { StepperInput } from "@/components/ui/stepper-input";
 import { NativeTextInput } from "@/components/ui/native-text-input";
 import { Body, Heading } from "@/components/ui/typography";
@@ -175,7 +178,7 @@ export default function AddHabitScreen() {
         onClosed={handleClose}
         height={contentHeight}
       >
-        <ScrollView
+        <BottomSheetScrollView
           onContentSizeChange={(_w, h) => {
             // iOS only: drives SwiftUI presentationDetents.
             // On Android this setState re-renders the Compose RNHostView
@@ -189,8 +192,6 @@ export default function AddHabitScreen() {
             padding: Spacing.xl,
             gap: Spacing.xl,
           }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
           <View
@@ -582,7 +583,7 @@ export default function AddHabitScreen() {
             size="lg"
             fullWidth
           />
-        </ScrollView>
+        </BottomSheetScrollView>
       </NativeBottomSheet>
 
       <ConfirmDialog

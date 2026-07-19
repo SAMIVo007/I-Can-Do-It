@@ -1,5 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from "react";
+import { Modal, Pressable, StyleSheet, View } from "react-native";
+import {
+  KeyboardAwareScrollView,
+  type KeyboardAwareScrollViewProps,
+} from "react-native-keyboard-controller";
 
 export interface NativeBottomSheetProps {
   isOpen: boolean;
@@ -9,7 +13,27 @@ export interface NativeBottomSheetProps {
   height?: number;
 }
 
-export function NativeBottomSheet({ isOpen, onClosed, children }: NativeBottomSheetProps) {
+/** Android-only; web stub returns undefined. */
+export function useBottomSheetMaxHeight(): number | undefined {
+  return undefined;
+}
+
+export function BottomSheetScrollView(props: KeyboardAwareScrollViewProps) {
+  return (
+    <KeyboardAwareScrollView
+      keyboardShouldPersistTaps="handled"
+      bottomOffset={24}
+      showsVerticalScrollIndicator={false}
+      {...props}
+    />
+  );
+}
+
+export function NativeBottomSheet({
+  isOpen,
+  onClosed,
+  children,
+}: NativeBottomSheetProps) {
   const [visible, setVisible] = useState(isOpen);
 
   useEffect(() => {
@@ -33,9 +57,7 @@ export function NativeBottomSheet({ isOpen, onClosed, children }: NativeBottomSh
     >
       <View style={styles.overlay}>
         <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
-        <View style={styles.sheetContent}>
-          {children}
-        </View>
+        <View style={styles.sheetContent}>{children}</View>
       </View>
     </Modal>
   );
@@ -44,15 +66,15 @@ export function NativeBottomSheet({ isOpen, onClosed, children }: NativeBottomSh
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
   sheetContent: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
     // Max height to behave somewhat like a bottom sheet
-    maxHeight: '90%',
+    maxHeight: "90%",
   },
 });
