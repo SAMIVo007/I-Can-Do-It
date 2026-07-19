@@ -20,6 +20,7 @@ import {
   LightColors,
   Spacing,
 } from "@/constants/theme";
+import { useResolvedColorScheme } from "@/hooks/use-app-colors";
 import { storage } from "@/utils/storage";
 import {
   BasicTextField,
@@ -49,11 +50,12 @@ import type { AppTextInputProps, TextInputHandle } from "./text-input-types";
 
 /**
  * Resolve field colors to concrete hex, matching the rest of the app:
- * - "system" theme → Material You palette (same source as Color.android.dynamic.*)
+ * - "system" theme → Material You palette
  * - forced light/dark → static Slate & Sage palette
  */
 function useFieldColors() {
   const material = useMaterialColors();
+  const scheme = useResolvedColorScheme();
   const [appTheme, setAppTheme] = useState(() =>
     storage.get<"system" | "light" | "dark">("appTheme", "system"),
   );
@@ -74,7 +76,7 @@ function useFieldColors() {
     };
   }
 
-  const pal = appTheme === "dark" ? DarkColors : LightColors;
+  const pal = scheme === "dark" ? DarkColors : LightColors;
   return {
     accent: pal.accent,
     textPrimary: pal.textPrimary,
@@ -98,6 +100,7 @@ export const NativeTextInput = forwardRef<TextInputHandle, AppTextInputProps>(
     ref,
   ) => {
     const Colors = useFieldColors();
+    const colorScheme = useResolvedColorScheme();
     const [focused, setFocused] = useState(false);
 
     const state = useNativeState(value ?? "");
@@ -140,7 +143,11 @@ export const NativeTextInput = forwardRef<TextInputHandle, AppTextInputProps>(
         : undefined;
 
     return (
-      <Host matchContents={{ vertical: true }} style={{ width: "100%" }}>
+      <Host
+        matchContents={{ vertical: true }}
+        colorScheme={colorScheme}
+        style={{ width: "100%" }}
+      >
         <BasicTextField
           ref={nativeRef}
           value={state}

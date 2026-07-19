@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { Platform, View, type ViewStyle, type ColorValue } from 'react-native';
-import { useAppColors } from '@/hooks/use-app-colors';
+import { useAppColors, useResolvedColorScheme } from '@/hooks/use-app-colors';
 import { Radii } from '@/constants/theme';
 import { DataText } from '@/components/ui/typography';
 
@@ -72,6 +72,7 @@ export function NativeLinearProgress({
   style,
 }: LinearProgressProps) {
   const Colors = useAppColors();
+  const colorScheme = useResolvedColorScheme();
   const indicatorColor = color ?? Colors.accent;
   const bgColor = trackColor ?? Colors.border;
 
@@ -80,7 +81,7 @@ export function NativeLinearProgress({
     const Host = JetpackHost;
     const Linear = JetpackLinear;
     return (
-      <Host matchContents={false} style={[{ height }, style]}>
+      <Host matchContents={false} colorScheme={colorScheme} style={[{ height }, style]}>
         <Linear
           progress={progress}
           color={indicatorColor}
@@ -131,6 +132,7 @@ export function NativeCircularProgress({
   children,
 }: CircularProgressProps) {
   const Colors = useAppColors();
+  const colorScheme = useResolvedColorScheme();
   const indicatorColor = color ?? Colors.accent;
   const bgColor = trackColor ?? Colors.border;
   const percentage = Math.floor(progress * 100);
@@ -154,7 +156,11 @@ export function NativeCircularProgress({
 
     return (
       <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-        <Host matchContents={false} style={{ position: 'absolute', width: size, height: size }}>
+        <Host
+          matchContents={false}
+          colorScheme={colorScheme}
+          style={{ position: 'absolute', width: size, height: size }}
+        >
           <Circular
             progress={progress}
             color={indicatorColor}

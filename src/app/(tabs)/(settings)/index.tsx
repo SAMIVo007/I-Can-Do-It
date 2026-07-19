@@ -5,7 +5,7 @@
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Body, Heading } from "@/components/ui/typography";
 import { Fonts, Spacing } from "@/constants/theme";
-import { useAppColors } from "@/hooks/use-app-colors";
+import { useAppColors, useResolvedColorScheme } from "@/hooks/use-app-colors";
 import { useStorage } from "@/hooks/use-storage";
 import { useHabitStore } from "@/stores/habit-store";
 import {
@@ -28,6 +28,7 @@ import {
 
 export default function SettingsScreen() {
   const Colors = useAppColors();
+  const colorScheme = useResolvedColorScheme();
 
   // State
   const [userName, setUserName] = useStorage("userName", "");
@@ -187,7 +188,7 @@ export default function SettingsScreen() {
             label="Haptic Feedback"
             icon={{ ios: "hand.tap", android: "touch_app", web: "touch_app" }}
             trailing={
-              <Host matchContents>
+              <Host matchContents colorScheme={colorScheme}>
                 <ExpoSwitch
                   value={hapticsEnabled}
                   onValueChange={setHapticsEnabled}
@@ -203,7 +204,7 @@ export default function SettingsScreen() {
               web: "notifications",
             }}
             trailing={
-              <Host matchContents>
+              <Host matchContents colorScheme={colorScheme}>
                 <ExpoSwitch
                   value={remindersEnabled}
                   onValueChange={handleToggleReminders}

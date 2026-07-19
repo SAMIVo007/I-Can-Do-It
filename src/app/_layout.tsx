@@ -2,8 +2,7 @@
  * Root layout — loads fonts, hydrates stores, gates onboarding vs. tabs.
  */
 
-import { Colors } from "@/constants/theme";
-import { useAppColors } from "@/hooks/use-app-colors";
+import { useAppColors, useResolvedColorScheme } from "@/hooks/use-app-colors";
 import { useStorage } from "@/hooks/use-storage";
 import { useHabitStore } from "@/stores/habit-store";
 import {
@@ -25,7 +24,7 @@ import { Stack } from "expo-router/stack";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect } from "react";
-import { useColorScheme, Appearance, Platform } from "react-native";
+import { Appearance, Platform } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { handleNotificationResponse } from "@/utils/notification-actions";
 import { prepareNotifications } from "@/utils/notifications";
@@ -75,12 +74,13 @@ function useNotificationObserver() {
 
 export default function RootLayout() {
   const Colors = useAppColors();
-  const colorScheme = useColorScheme();
+  const resolvedScheme = useResolvedColorScheme();
   useNotificationObserver();
 
   /** Custom theme to match Slate & Sage */
   const SlateTheme = {
     ...DefaultTheme,
+    dark: resolvedScheme === "dark",
     colors: {
       ...DefaultTheme.colors,
       background: Colors.background as string,
@@ -112,12 +112,13 @@ export default function RootLayout() {
     "appTheme",
     "system",
   );
-  const activeThemeName = appTheme === "system" ? colorScheme : appTheme;
 
   useEffect(() => {
     hydrate();
   }, [hydrate]);
 
+  // Keep RN Appearance in sync so native chrome (and any leftover PlatformColor)
+  // follows the in-app preference, not only the OS setting.
   useEffect(() => {
     if (appTheme === "system") {
       Appearance.setColorScheme("unspecified");
@@ -142,9 +143,9 @@ export default function RootLayout() {
 
   return (
     <KeyboardProvider>
-      <ThemeProvider value={SlateTheme} key={activeThemeName}>
+      <ThemeProvider value={SlateTheme} key={resolvedScheme}>
         {/* dark = dark icons (light bg); light = light icons (dark bg) */}
-        <StatusBar style={activeThemeName === "dark" ? "light" : "dark"} />
+        <StatusBar style={resolvedScheme === "dark" ? "light" : "dark"} />
         <Stack screenOptions={{ headerShown: false }}>
           {/* Un-onboarded users: only the onboarding flow exists, so the
 					    app opens straight into it and seeds the first goal + habits. */}

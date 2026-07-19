@@ -10,7 +10,7 @@ import { HabitCard } from "@/components/ui/habit-card";
 import { HabitMenu } from "@/components/ui/habit-menu";
 import { NativeCircularProgress } from "@/components/ui/native-progress";
 import { Body, Heading } from "@/components/ui/typography";
-import { Fonts, Spacing } from "@/constants/theme";
+import { Fonts, Radii, Spacing } from "@/constants/theme";
 import { useAppColors } from "@/hooks/use-app-colors";
 import { useStorage } from "@/hooks/use-storage";
 import { useToday } from "@/hooks/use-today";
@@ -19,6 +19,7 @@ import { toDateKey } from "@/utils/date";
 import * as Haptics from "expo-haptics";
 import { triggerHaptic } from "@/utils/haptics";
 import { router } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import React from "react";
 import { Pressable, ScrollView, View, ViewStyle } from "react-native";
 import Animated, {
@@ -74,6 +75,7 @@ export default function TodayScreen() {
 	const toggleHabit = useHabitStore((s) => s.toggleHabit);
 	const updateProgress = useHabitStore((s) => s.updateProgress);
 	const deleteHabit = useHabitStore((s) => s.deleteHabit);
+	const streak = useHabitStore((s) => s.getStreak());
 
 	const getLogForHabit = (habitId: string) =>
 		logs.find((l) => l.habitId === habitId && l.date === today);
@@ -139,6 +141,54 @@ export default function TodayScreen() {
 							<Heading size="lg" italic>
 								{greeting},
 							</Heading>
+							<Pressable
+								onPress={() => router.push("/(tabs)/(progress)" as any)}
+								hitSlop={8}
+								style={({ pressed }) => ({
+									flexDirection: "row",
+									alignItems: "center",
+									gap: Spacing.xs,
+									paddingVertical: Spacing.xs,
+									paddingHorizontal: Spacing.md,
+									borderRadius: Radii.full,
+									backgroundColor: Colors.surface,
+									borderWidth: 1,
+									borderColor: Colors.border,
+									opacity: pressed ? 0.7 : 1,
+								})}
+								accessibilityRole="button"
+								accessibilityLabel={`${streak} day streak`}
+							>
+								<SymbolView
+									name={{
+										ios: "flame.fill",
+										android: "local_fire_department",
+										web: "local_fire_department",
+									}}
+									size={18}
+									tintColor={streak > 0 ? Colors.accent : Colors.textSecondary}
+									fallback={
+										<Body
+											style={{
+												color: streak > 0 ? Colors.accent : Colors.textSecondary,
+												fontSize: 16,
+											}}
+										>
+											🔥
+										</Body>
+									}
+								/>
+								<Body
+									weight="bold"
+									style={{
+										fontFamily: Fonts.utilityMedium,
+										color: streak > 0 ? Colors.accent : Colors.textSecondary,
+										fontVariant: ["tabular-nums"],
+									}}
+								>
+									{streak}
+								</Body>
+							</Pressable>
 						</View>
 						<Heading size="xl">{userName}!</Heading>
 						<Body secondary style={{ marginTop: Spacing.sm }}>

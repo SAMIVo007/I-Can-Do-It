@@ -5,7 +5,7 @@
  * Material AlertDialog instead of React Native's Alert.
  */
 
-import { useAppColors } from "@/hooks/use-app-colors";
+import { useAppColors, useResolvedColorScheme } from "@/hooks/use-app-colors";
 import {
 	AlertDialog,
 	Text as AndroidText,
@@ -28,10 +28,11 @@ export function ConfirmDialog({
 	onDismiss,
 }: ConfirmDialogProps) {
 	const Colors = useAppColors();
+	const colorScheme = useResolvedColorScheme();
 	if (!visible) return null;
 
 	return (
-		<Host matchContents>
+		<Host matchContents colorScheme={colorScheme}>
 			<AlertDialog onDismissRequest={onDismiss}>
 				<AlertDialog.Title>
 					<AndroidText>{title}</AndroidText>

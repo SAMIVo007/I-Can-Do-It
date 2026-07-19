@@ -1,4 +1,4 @@
-import { useAppColors } from "@/hooks/use-app-colors";
+import { useAppColors, useResolvedColorScheme } from "@/hooks/use-app-colors";
 import { useHabitStore } from "@/stores/habit-store";
 import {
 	Text as AndroidText,
@@ -25,6 +25,7 @@ export interface GoalMenuProps {
 
 export function GoalMenu({ goalId, children, isIcon }: GoalMenuProps) {
 	const Colors = useAppColors();
+	const colorScheme = useResolvedColorScheme();
 	const [expanded, setExpanded] = useState(false);
 	const [dialogVisible, setDialogVisible] = useState(false);
 	const deleteGoal = useHabitStore((s) => s.deleteGoal);
@@ -77,7 +78,7 @@ export function GoalMenu({ goalId, children, isIcon }: GoalMenuProps) {
 			    when this mounts during a Reanimated screen transition. */}
 			{expanded && (
 			<View style={{ position: "absolute", top: 20, right: 20, width: 1, height: 1 }} pointerEvents="none">
-				<Host matchContents>
+				<Host matchContents colorScheme={colorScheme}>
 					<DropdownMenu
 						expanded={expanded}
 						onDismissRequest={() => setExpanded(false)}

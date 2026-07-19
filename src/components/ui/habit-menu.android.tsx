@@ -1,4 +1,4 @@
-import { useAppColors } from "@/hooks/use-app-colors";
+import { useAppColors, useResolvedColorScheme } from "@/hooks/use-app-colors";
 import { useHabitStore } from "@/stores/habit-store";
 import {
 	AlertDialog,
@@ -26,6 +26,7 @@ export interface HabitMenuProps {
 
 export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
 	const Colors = useAppColors();
+	const colorScheme = useResolvedColorScheme();
 	const [expanded, setExpanded] = useState(false);
 	const [deleteAlertVisible, setDeleteAlertVisible] = useState(false);
 	const deleteHabit = useHabitStore((s) => s.deleteHabit);
@@ -73,7 +74,7 @@ export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
 			    "performMeasureAndLayout called during measure layout". */}
 			{(expanded || deleteAlertVisible) && (
 			<View style={{ position: "absolute", top: 20, right: 20, width: 1, height: 1 }} pointerEvents="none">
-				<Host matchContents>
+				<Host matchContents colorScheme={colorScheme}>
 					<DropdownMenu
 						expanded={expanded}
 						onDismissRequest={() => setExpanded(false)}

@@ -30,6 +30,7 @@ import {
   type KeyboardAwareScrollViewProps,
 } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useResolvedColorScheme } from "@/hooks/use-app-colors";
 
 export interface NativeBottomSheetProps {
   isOpen: boolean;
@@ -100,6 +101,7 @@ export function NativeBottomSheet({
 
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const colorScheme = useResolvedColorScheme();
   const keyboardHeight = useKeyboardState((s) => (s.isVisible ? s.height : 0));
 
   // Space available for the body (below handle), never past the top edge /
@@ -133,7 +135,7 @@ export function NativeBottomSheet({
   }, [isOpen]);
 
   return (
-    <Host matchContents>
+    <Host matchContents colorScheme={colorScheme}>
       {mounted && (
         <ModalBottomSheet
           ref={sheetRef}
