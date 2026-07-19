@@ -23,6 +23,7 @@ import * as Notifications from "expo-notifications";
 import { DefaultTheme, ThemeProvider, router } from "expo-router";
 import { Stack } from "expo-router/stack";
 import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect } from "react";
 import { useColorScheme, Appearance, Platform } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -142,6 +143,8 @@ export default function RootLayout() {
   return (
     <KeyboardProvider>
       <ThemeProvider value={SlateTheme} key={activeThemeName}>
+        {/* dark = dark icons (light bg); light = light icons (dark bg) */}
+        <StatusBar style={activeThemeName === "dark" ? "light" : "dark"} />
         <Stack screenOptions={{ headerShown: false }}>
           {/* Un-onboarded users: only the onboarding flow exists, so the
 					    app opens straight into it and seeds the first goal + habits. */}

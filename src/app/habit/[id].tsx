@@ -18,7 +18,7 @@ import * as Haptics from "expo-haptics";
 import { triggerHaptic } from "@/utils/haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Pressable, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -120,20 +120,24 @@ export default function HabitDetailScreen() {
 				style={{ backgroundColor: Colors.background }}
 				bottomOffset={62}
 			>
-				<Animated.View
-					entering={FadeInDown.duration(400).delay(200)}
-					style={{ alignItems: "center", gap: Spacing.lg }}
-				>
+				{/* Compose Host must not sit under Reanimated entering animations —
+				    that re-entrancy crashes Android with performMeasureAndLayout. */}
+				<View style={{ alignItems: "center", gap: Spacing.lg }}>
 					<NativeCircularProgress
 						progress={progress}
 						size={120}
 						strokeWidth={8}
 						color={completed ? Colors.success : Colors.accent}
-						labelSize="lg" />
-
-					<Heading size="lg">{habit.title}</Heading>
-					<CategoryPill label={parentGoal?.focusArea ?? habit.category} />
-				</Animated.View>
+						labelSize="lg"
+					/>
+					<Animated.View
+						entering={FadeInDown.duration(400).delay(200)}
+						style={{ alignItems: "center", gap: Spacing.md }}
+					>
+						<Heading size="lg">{habit.title}</Heading>
+						<CategoryPill label={parentGoal?.focusArea ?? habit.category} />
+					</Animated.View>
+				</View>
 
 				<Animated.View entering={FadeInDown.duration(400).delay(100)}>
 					<Card variant="filled" padding="lg">

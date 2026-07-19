@@ -68,7 +68,10 @@ export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
 				<View>{children}</View>
 			)}
 
-			{/* Compose Menu anchored to a tiny invisible view */}
+			{/* Compose Host only while open — mounting matchContents Host during
+			    screen enter + Reanimated layout crashes with
+			    "performMeasureAndLayout called during measure layout". */}
+			{(expanded || deleteAlertVisible) && (
 			<View style={{ position: "absolute", top: 20, right: 20, width: 1, height: 1 }} pointerEvents="none">
 				<Host matchContents>
 					<DropdownMenu
@@ -160,6 +163,7 @@ export function HabitMenu({ habitId, children, isIcon }: HabitMenuProps) {
 			)}
 		</Host>
 			</View>
+			)}
 		</View>
 	);
 }

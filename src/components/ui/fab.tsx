@@ -3,6 +3,7 @@ import { Fonts, Spacing } from "@/constants/theme";
 import { useAppColors } from "@/hooks/use-app-colors";
 import { useTheme } from "expo-router";
 import { SymbolView } from "expo-symbols";
+import React from "react";
 import { Platform, Pressable, View } from "react-native";
 import Animated, {
 	SharedValue,
@@ -82,14 +83,14 @@ export function FAB({ onPress, isExpanded, label = "Add Habit", expandedWidth = 
 					<SymbolView
 						name={{ ios: "plus", android: "add", web: "add" }}
 						size={24}
-						tintColor={Colors.white}
-						fallback={<Body style={{ color: Colors.white, fontSize: 24, lineHeight: 28 }}>+</Body>}
+						tintColor={Colors.background}
+						fallback={<Body style={{ color: Colors.background, fontSize: 24, lineHeight: 28 }}>+</Body>}
 					/>
 				</View>
 				<Animated.View style={textStyle}>
 					<Body
 						style={{
-							color: Colors.white,
+							color: Colors.background,
 							fontSize: 16,
 							fontFamily: Fonts.utilityMedium,
 							marginLeft: 8,

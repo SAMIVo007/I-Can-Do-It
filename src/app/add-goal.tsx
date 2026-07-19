@@ -235,7 +235,7 @@ export default function AddGoalScreen() {
                 if (titleError) setTitleError("");
               }}
               placeholder="e.g., Get Fit, Learn Guitar, Save $10k"
-              autoFocus={!isEdit}
+              autoFocus
             />
             {titleError ? (
               <Body

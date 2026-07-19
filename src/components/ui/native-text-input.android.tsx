@@ -45,7 +45,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useColorScheme } from "react-native";
 import type { AppTextInputProps, TextInputHandle } from "./text-input-types";
 
 /**
@@ -122,6 +121,16 @@ export const NativeTextInput = forwardRef<TextInputHandle, AppTextInputProps>(
       },
     }));
 
+    // ModalBottomSheet must finish presenting before Compose focus works.
+    // Native autoFocus alone is too early and often no-ops.
+    useEffect(() => {
+      if (!autoFocus) return;
+      const timer = setTimeout(() => {
+        nativeRef.current?.focus();
+      }, 450);
+      return () => clearTimeout(timer);
+    }, [autoFocus]);
+
     const labelColor = focused ? Colors.accent : Colors.textSecondary;
     const borderColor = focused ? Colors.accent : Colors.border;
 
@@ -136,7 +145,6 @@ export const NativeTextInput = forwardRef<TextInputHandle, AppTextInputProps>(
           ref={nativeRef}
           value={state}
           singleLine
-          autoFocus={autoFocus}
           cursorColor={Colors.accent}
           keyboardOptions={keyboardOptions}
           onValueChange={(text) => onChangeText?.(text)}

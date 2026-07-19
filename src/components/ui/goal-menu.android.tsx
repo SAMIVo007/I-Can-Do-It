@@ -73,7 +73,9 @@ export function GoalMenu({ goalId, children, isIcon }: GoalMenuProps) {
 				<View>{children}</View>
 			)}
 
-			{/* Compose Menu anchored to a tiny invisible view */}
+			{/* Compose Host only while open — avoids measure-during-layout crash
+			    when this mounts during a Reanimated screen transition. */}
+			{expanded && (
 			<View style={{ position: "absolute", top: 20, right: 20, width: 1, height: 1 }} pointerEvents="none">
 				<Host matchContents>
 					<DropdownMenu
@@ -138,6 +140,7 @@ export function GoalMenu({ goalId, children, isIcon }: GoalMenuProps) {
 			</DropdownMenu>
 				</Host>
 			</View>
+			)}
 		</View>
 
 		<ConfirmDialog

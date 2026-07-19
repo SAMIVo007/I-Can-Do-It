@@ -48,7 +48,7 @@ export function Button({
 
   const variantText: TextStyle = {
     primary: {
-      color: Colors.white,
+      color: Colors.background,
     },
     outlined: {
       color: Colors.accent,

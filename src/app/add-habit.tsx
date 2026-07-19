@@ -18,7 +18,7 @@ import { useHabitStore } from "@/stores/habit-store";
 import type { HabitCategory, HabitType } from "@/types/models";
 import { TimePicker } from "@/components/ui/time-picker";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   Platform,
   Pressable,
@@ -26,7 +26,6 @@ import {
   View,
   type ViewStyle,
 } from "react-native";
-import type { TextInputHandle } from "@/components/ui/text-input-types";
 
 export default function AddHabitScreen() {
   const Colors = useAppColors();
@@ -68,16 +67,6 @@ export default function AddHabitScreen() {
 
   const [isOpen, setIsOpen] = useState(true);
   const [noGoalVisible, setNoGoalVisible] = useState(false);
-  const inputRef = useRef<TextInputHandle>(null);
-
-  useEffect(() => {
-    if (!editId) {
-      const timer = setTimeout(() => {
-        inputRef.current?.focus();
-      }, 400);
-      return () => clearTimeout(timer);
-    }
-  }, []);
 
   const [titleError, setTitleError] = useState("");
   const [targetError, setTargetError] = useState("");
@@ -319,7 +308,7 @@ export default function AddHabitScreen() {
                 if (titleError) setTitleError("");
               }}
               placeholder="e.g., Morning Run, Read 20 Pages"
-              ref={inputRef}
+              autoFocus
             />
             {titleError ? (
               <Body
@@ -368,7 +357,7 @@ export default function AddHabitScreen() {
                   style={{
                     color:
                       habitType === "boolean"
-                        ? Colors.white
+                        ? Colors.background
                         : Colors.textPrimary,
                   }}
                 >
@@ -400,7 +389,7 @@ export default function AddHabitScreen() {
                   style={{
                     color:
                       habitType === "quantitative"
-                        ? Colors.white
+                        ? Colors.background
                         : Colors.textPrimary,
                   }}
                 >
