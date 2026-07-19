@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { NativeBottomSheet } from "@/components/ui/native-bottom-sheet";
 import { StepperInput } from "@/components/ui/stepper-input";
-import { TextInput } from "@/components/ui/text-input";
+import { NativeTextInput } from "@/components/ui/native-text-input";
 import { Body, Heading } from "@/components/ui/typography";
 import { Radii, Spacing } from "@/constants/theme";
 import { useAppColors } from "@/hooks/use-app-colors";
@@ -20,10 +20,10 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  TextInput as RNTextInput,
   View,
   type ViewStyle,
 } from "react-native";
+import type { TextInputHandle } from "@/components/ui/text-input-types";
 
 export default function AddHabitScreen() {
   const Colors = useAppColors();
@@ -65,7 +65,7 @@ export default function AddHabitScreen() {
 
   const [isOpen, setIsOpen] = useState(true);
   const [noGoalVisible, setNoGoalVisible] = useState(false);
-  const inputRef = useRef<RNTextInput>(null);
+  const inputRef = useRef<TextInputHandle>(null);
 
   useEffect(() => {
     if (!editId) {
@@ -190,7 +190,7 @@ export default function AddHabitScreen() {
             gap: Spacing.xl,
           }}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="always"
+          keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
           <View
@@ -310,7 +310,7 @@ export default function AddHabitScreen() {
 
           {/* Input */}
           <View>
-            <TextInput
+            <NativeTextInput
               label="Habit Name"
               value={title}
               onChangeText={(text) => {
@@ -414,7 +414,7 @@ export default function AddHabitScreen() {
             <View style={{ gap: Spacing.md }}>
               <View style={{ flexDirection: "row", gap: Spacing.md }}>
                 <View style={{ flex: 1 }}>
-                  <TextInput
+                  <NativeTextInput
                     label="Target"
                     value={target}
                     onChangeText={(text) => {
@@ -434,7 +434,7 @@ export default function AddHabitScreen() {
                   ) : null}
                 </View>
                 <View style={{ flex: 1 }}>
-                  <TextInput
+                  <NativeTextInput
                     label="Unit"
                     value={unit}
                     onChangeText={(text) => {

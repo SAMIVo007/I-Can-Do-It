@@ -1,86 +1,55 @@
 /**
- * Styled TextInput with floating label.
- * Bottom-border only style — Platinum (#E0E0E0) → Slate Blue (#36454F) on focus.
+ * Styled TextInput with floating label (iOS / web).
+ * Bottom-border only style — border → accent on focus.
+ *
+ * Android uses the native Jetpack Compose field in text-input.android.tsx.
+ * The public props/handle are shared via text-input-types.ts so callers are
+ * platform-agnostic.
  */
 
-import { useAppColors } from "@/hooks/use-app-colors";
 import { Fonts, FontSizes, Spacing } from "@/constants/theme";
+import { useAppColors } from "@/hooks/use-app-colors";
 import React, {
   forwardRef,
-  useCallback,
-  useEffect,
+  useImperativeHandle,
   useRef,
   useState,
 } from "react";
 import {
-  Keyboard,
-  Pressable,
   TextInput as RNTextInput,
   View,
-  type TextInputProps as RNTextInputProps,
   type TextStyle,
   type ViewStyle,
 } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  withTiming,
-} from "react-native-reanimated";
-
-interface TextInputProps extends Omit<RNTextInputProps, "style"> {
-  label: string;
-}
+import Animated, { useAnimatedStyle, withTiming } from "react-native-reanimated";
+import type { AppTextInputProps, TextInputHandle } from "./text-input-types";
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
-export const TextInput = forwardRef<RNTextInput, TextInputProps>(
+export const TextInput = forwardRef<TextInputHandle, AppTextInputProps>(
   (
     {
       label,
       value,
       onChangeText,
       placeholder,
+      autoFocus,
+      keyboardType = "default",
       onFocus,
       onBlur,
-      ...props
-    }: TextInputProps,
+    },
     ref,
   ) => {
     const Colors = useAppColors();
     const [focused, setFocused] = useState(false);
-    const [showPlaceholder, setShowPlaceholder] = useState(false);
     const hasValue = Boolean(value && value.length > 0);
     const isActive = focused || hasValue;
 
-    // Merge the forwarded ref with an internal one so we can blur it ourselves.
     const innerRef = useRef<RNTextInput>(null);
-    const focusedRef = useRef(false);
-    const lastFocusAt = useRef(0);
-    const setRefs = useCallback(
-      (node: RNTextInput | null) => {
-        innerRef.current = node;
-        if (typeof ref === "function") ref(node);
-        else if (ref) {
-          (ref as React.MutableRefObject<RNTextInput | null>).current = node;
-        }
-      },
-      [ref],
-    );
-
-    const focusInput = useCallback(() => {
-      innerRef.current?.focus();
-    }, []);
-
-    // Android keeps the TextInput focused when the keyboard is dismissed by
-    // tapping away, so a second tap fires no focus event and the keyboard never
-    // reopens. Force a blur on keyboard-hide to restore the tap-to-focus cycle.
-    // Ignore hide events that land right after a new focus (stale hide callbacks).
-    useEffect(() => {
-      const sub = Keyboard.addListener("keyboardDidHide", () => {
-        if (Date.now() - lastFocusAt.current < 200) return;
-        if (focusedRef.current) innerRef.current?.blur();
-      });
-      return () => sub.remove();
-    }, []);
+    useImperativeHandle(ref, () => ({
+      focus: () => innerRef.current?.focus(),
+      blur: () => innerRef.current?.blur(),
+    }));
 
     const borderStyle = useAnimatedStyle(() => ({
       borderBottomWidth: withTiming(focused ? 2 : 1, { duration: 200 }),
@@ -94,66 +63,58 @@ export const TextInput = forwardRef<RNTextInput, TextInputProps>(
     }));
 
     return (
-      <Pressable onPress={focusInput}>
-        <AnimatedView
+      <AnimatedView
+        style={[
+          {
+            paddingTop: Spacing.lg,
+            paddingBottom: Spacing.sm,
+            borderBottomColor: (focused ? Colors.accent : Colors.border) as any,
+          } satisfies ViewStyle,
+          borderStyle,
+        ]}
+      >
+        <Animated.Text
+          pointerEvents="none"
           style={[
             {
-              paddingTop: Spacing.lg,
-              paddingBottom: Spacing.sm,
-              borderBottomColor: (focused
-                ? Colors.accent
-                : Colors.border) as any,
-            } satisfies ViewStyle,
-            borderStyle,
+              fontFamily: Fonts.utility,
+              position: "absolute",
+              color: (focused ? Colors.accent : Colors.textSecondary) as any,
+            } satisfies TextStyle,
+            labelStyle,
           ]}
         >
-          <Animated.Text
-            pointerEvents="none"
-            style={[
-              {
-                fontFamily: Fonts.utility,
-                position: "absolute",
-                color: (focused ? Colors.accent : Colors.textSecondary) as any,
-              } satisfies TextStyle,
-              labelStyle,
-            ]}
-          >
-            {label}
-          </Animated.Text>
-          <RNTextInput
-            ref={setRefs}
-            value={value}
-            onChangeText={onChangeText}
-            onFocus={(e) => {
-              lastFocusAt.current = Date.now();
-              setFocused(true);
-              focusedRef.current = true;
-              // Delay placeholder to wait for label animation
-              setTimeout(() => setShowPlaceholder(true), 150);
-              onFocus?.(e);
-            }}
-            onBlur={(e) => {
-              setFocused(false);
-              focusedRef.current = false;
-              setShowPlaceholder(false);
-              onBlur?.(e);
-            }}
-            placeholder={showPlaceholder ? placeholder : ""}
-            placeholderTextColor={Colors.textSecondary}
-            style={
-              {
-                fontFamily: Fonts.utility,
-                fontSize: FontSizes.lg,
-                color: Colors.textPrimary,
-                paddingVertical: Spacing.xs,
-                paddingHorizontal: 0,
-                backgroundColor: "red",
-              } satisfies TextStyle
-            }
-            {...props}
-          />
-        </AnimatedView>
-      </Pressable>
+          {label}
+        </Animated.Text>
+        <RNTextInput
+          ref={innerRef}
+          value={value}
+          onChangeText={onChangeText}
+          autoFocus={autoFocus}
+          keyboardType={keyboardType === "numeric" ? "numeric" : "default"}
+          onFocus={() => {
+            setFocused(true);
+            onFocus?.();
+          }}
+          onBlur={() => {
+            setFocused(false);
+            onBlur?.();
+          }}
+          placeholder={focused ? placeholder : ""}
+          placeholderTextColor={Colors.textSecondary}
+          style={
+            {
+              fontFamily: Fonts.utility,
+              fontSize: FontSizes.lg,
+              color: Colors.textPrimary,
+              paddingVertical: Spacing.xs,
+              paddingHorizontal: 0,
+            } satisfies TextStyle
+          }
+        />
+      </AnimatedView>
     );
   },
 );
+
+TextInput.displayName = "TextInput";

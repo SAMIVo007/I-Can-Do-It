@@ -14,7 +14,7 @@ import {
   enableReminders,
 } from "@/utils/notifications";
 import { Switch as ExpoSwitch, Host } from "@expo/ui";
-import { useState } from "react";
+import React, { useState } from "react";
 import { TextInput as RNTextInput, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Animated, { FadeInDown } from "react-native-reanimated";
