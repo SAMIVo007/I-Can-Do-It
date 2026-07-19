@@ -235,7 +235,7 @@ export default function SettingsScreen() {
       {/* More Section */}
       <Animated.View entering={FadeInDown.duration(400).delay(250)}>
         <SettingsGroup label="More">
-          <SettingsRow
+          {/* <SettingsRow
             label="Load Demo Data"
             icon={{
               ios: "sparkles",
@@ -257,7 +257,7 @@ export default function SettingsScreen() {
                 <SettingsChevron />
               </View>
             }
-          />
+          /> */}
           <SettingsRow
             label="Send Feedback"
             icon={{ ios: "paperplane", android: "send", web: "send" }}
